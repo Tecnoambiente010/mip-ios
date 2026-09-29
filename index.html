@@ -605,6 +605,7 @@
   body.ios-device .toolbar{padding-bottom:max(12px, env(safe-area-inset-bottom));}
   @media (max-width:640px){body.ios-device{padding-bottom:125px;}}
 </style>
+<!-- Build SAP-PDF-FLAT-v1 -->
 </head>
 <body>
 <div class="ios-notice" id="iosNotice" role="status">
@@ -1019,11 +1020,12 @@
 </div>
 
 <div class="toolbar no-print">
-  <span class="status" id="statusMsg" role="status" aria-live="polite">Informe listo · compatible con navegador y uso sin conexión</span>
+  <span class="status" id="statusMsg" role="status" aria-live="polite">Informe listo · usa “PDF SAP compatible” para cargar en KPro</span>
   <div class="actions">
     <button type="button" class="btn btn-reset" id="btnReset" aria-label="Limpiar todos los datos e iniciar un nuevo formulario" title="Borra todos los datos variables y comienza un informe nuevo">🧹 Limpiar / Nuevo formulario</button>
     <button type="button" class="btn btn-ghost" id="btnDocument" title="Descarga un archivo DOCX real, editable y compatible con Microsoft Word/SAP">📄 Descargar DOCX</button>
-    <button type="button" class="btn btn-primary" id="btnPrint">📕 Descargar PDF</button>
+    <button type="button" class="btn btn-primary" id="btnPdfSap" title="Genera un PDF aplanado y simplificado para SAP/KPro">📕 PDF SAP compatible</button>
+    <button type="button" class="btn btn-ghost" id="btnPrint" title="Usa la impresión PDF del navegador/iPhone como alternativa">🖨️ PDF estándar</button>
   </div>
 </div>
 
@@ -2412,7 +2414,17 @@
   var pdfLibraries = [
     {
       ready: function(){ return window.jspdf && typeof window.jspdf.jsPDF === 'function'; },
-      urls: []
+      urls: [
+        'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js'
+      ]
+    },
+    {
+      ready: function(){ return typeof window.html2canvas === 'function'; },
+      urls: [
+        'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+      ]
     }
   ];
 
@@ -3765,6 +3777,166 @@ function escribirFirmas(firmas, numeroSeccion){
     }
   }
 
+  function generarPdfSapAplanado(onReady, onError){
+    var root = document.getElementById('printReport');
+    var prev = {
+      display: root.style.display,
+      position: root.style.position,
+      left: root.style.left,
+      top: root.style.top,
+      width: root.style.width,
+      maxHeight: root.style.maxHeight,
+      overflow: root.style.overflow,
+      background: root.style.background,
+      zIndex: root.style.zIndex,
+      visibility: root.style.visibility
+    };
+
+    function restaurar(){
+      Object.keys(prev).forEach(function(k){ root.style[k] = prev[k]; });
+      root.setAttribute('aria-hidden','true');
+    }
+
+    try{
+      prepararInformeImpresion();
+      root.style.display = 'block';
+      root.style.position = 'fixed';
+      root.style.left = '-12000px';
+      root.style.top = '0';
+      root.style.width = '794px';
+      root.style.maxHeight = 'none';
+      root.style.overflow = 'visible';
+      root.style.background = '#ffffff';
+      root.style.zIndex = '-9999';
+      root.style.visibility = 'visible';
+
+      var article = root.querySelector('.print-report') || root;
+      window.setTimeout(function(){
+        window.html2canvas(article, {
+          backgroundColor:'#ffffff',
+          scale:1.35,
+          useCORS:true,
+          allowTaint:false,
+          logging:false,
+          imageTimeout:12000,
+          scrollX:0,
+          scrollY:0,
+          windowWidth:794,
+          removeContainer:true
+        }).then(function(canvas){
+          try{
+            var jsPDF = window.jspdf.jsPDF;
+            // El PDF contiene únicamente imágenes JPEG de página: sin formularios,
+            // fuentes incrustadas, JavaScript, capas ni objetos interactivos.
+            var pdf = new jsPDF({
+              orientation:'portrait',
+              unit:'mm',
+              format:'a4',
+              compress:true,
+              putOnlyUsedFonts:true,
+              precision:2
+            });
+            var filename = nombreArchivo();
+            var safeTitle = filename.replace(/\.pdf$/i,'');
+            pdf.setProperties({
+              title:safeTitle,
+              subject:'Informe MIP SAP KPro',
+              author:'TECNOAMBIENTE SPA',
+              creator:'Tecnoambiente MIP',
+              keywords:'MIP SAP KPro'
+            });
+
+            var margin = 8;
+            var imageW = 210 - margin * 2;
+            var imageHMax = 297 - margin * 2;
+            var slicePx = Math.floor(canvas.width * (imageHMax / imageW));
+            var pageIndex = 0;
+            var y = 0;
+
+            while(y < canvas.height){
+              var h = Math.min(slicePx, canvas.height - y);
+              var pageCanvas = document.createElement('canvas');
+              pageCanvas.width = canvas.width;
+              pageCanvas.height = h;
+              var ctx = pageCanvas.getContext('2d', {alpha:false});
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0,0,pageCanvas.width,pageCanvas.height);
+              ctx.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+
+              var jpg = pageCanvas.toDataURL('image/jpeg', 0.82);
+              var drawH = h / canvas.width * imageW;
+              if(pageIndex > 0) pdf.addPage('a4','portrait');
+              pdf.addImage(jpg, 'JPEG', margin, margin, imageW, drawH, undefined, 'FAST');
+              pageIndex += 1;
+              y += h;
+            }
+
+            restaurar();
+            onReady(pdf, filename, pageIndex);
+          }catch(pdfErr){
+            restaurar();
+            onError(pdfErr);
+          }
+        }).catch(function(canvasErr){
+          restaurar();
+          onError(canvasErr);
+        });
+      }, 120);
+    }catch(err){
+      restaurar();
+      onError(err);
+    }
+  }
+
+  function entregarPdfSap(pdf, filename, pageCount){
+    var status = document.getElementById('statusMsg');
+    try{
+      var blob = pdf.output('blob');
+      var sizeMB = blob.size / (1024*1024);
+      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      if(lastPdfUrl){ try{ window.URL.revokeObjectURL(lastPdfUrl); }catch(e0){} }
+      lastPdfUrl = window.URL.createObjectURL(blob);
+
+      if(isIOS && typeof File === 'function' && navigator.share){
+        try{
+          var file = new File([blob], filename, {type:'application/pdf', lastModified:Date.now()});
+          if(!navigator.canShare || navigator.canShare({files:[file]})){
+            status.textContent = 'PDF SAP listo · ' + pageCount + ' pág. · ' + sizeMB.toFixed(2) + ' MB';
+            navigator.share({files:[file], title:filename})
+              .then(function(){ status.textContent = 'PDF SAP enviado a Compartir · ' + filename; })
+              .catch(function(err){
+                if(err && err.name === 'AbortError'){
+                  status.textContent = 'Compartir cancelado · el PDF SAP quedó preparado.';
+                }else{
+                  try{ window.open(lastPdfUrl, '_blank'); }catch(e1){}
+                  status.textContent = 'PDF SAP preparado · usa Compartir → Guardar en Archivos.';
+                }
+              });
+            return;
+          }
+        }catch(shareErr){}
+      }
+
+      var a = document.createElement('a');
+      a.href = lastPdfUrl;
+      a.download = filename;
+      a.rel = 'noopener';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      try{ a.click(); }catch(e2){}
+      window.setTimeout(function(){ if(a.parentNode) a.parentNode.removeChild(a); }, 500);
+      if(isIOS){
+        window.setTimeout(function(){ try{ window.open(lastPdfUrl,'_blank'); }catch(e3){} }, 250);
+      }
+      status.textContent = 'PDF SAP compatible generado · ' + pageCount + ' pág. · ' + sizeMB.toFixed(2) + ' MB';
+    }catch(err){
+      console.error('Error al entregar PDF SAP:', err);
+      status.textContent = 'No fue posible guardar el PDF SAP. Reintenta.';
+    }
+  }
+
   function descargarBlob(pdf, filename){
     actualizarTituloDocumento();
     var blob = pdf.output('blob');
@@ -3815,6 +3987,31 @@ function escribirFirmas(firmas, numeroSeccion){
     btnDocument.addEventListener('click', function(ev){
       if(ev){ ev.preventDefault(); }
       descargarDocumentoWord();
+    });
+  }
+
+  var btnPdfSap = document.getElementById('btnPdfSap');
+  if(btnPdfSap){
+    btnPdfSap.addEventListener('click', function(ev){
+      if(ev){ ev.preventDefault(); }
+      var status = document.getElementById('statusMsg');
+      if(!validarSalidaInforme('pdf')) return;
+      actualizarTituloDocumento();
+      status.textContent = 'Preparando PDF SAP compatible…';
+      btnPdfSap.disabled = true;
+      cargarLibreriasPdf(function(){
+        generarPdfSapAplanado(function(pdf, filename, pages){
+          btnPdfSap.disabled = false;
+          entregarPdfSap(pdf, filename, pages);
+        }, function(err){
+          btnPdfSap.disabled = false;
+          console.error('Error PDF SAP:', err);
+          status.textContent = 'No fue posible generar el PDF SAP. Verifica conexión y vuelve a intentar.';
+        });
+      }, function(){
+        btnPdfSap.disabled = false;
+        status.textContent = 'No se pudieron cargar los componentes PDF. Revisa la conexión y reintenta.';
+      });
     });
   }
 

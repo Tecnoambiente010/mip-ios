@@ -8,9 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="theme-color" content="#1F2A24">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tecnoambiente MIP">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="format-detection" content="telephone=no">
 <meta name="color-scheme" content="light">
@@ -287,6 +285,14 @@
     text-align:center; cursor:pointer; background:#FCFBF8;
   }
   .img-drop:hover{border-color:var(--green);}
+  .photo-pickers{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;}
+  .photo-pickers .img-drop{flex:1 1 120px; min-height:44px; margin:0;}
+  #imgCamera{display:none;}
+  @media (pointer:coarse){#imgCamera{display:block;}}
+  .clear-selection{
+    border:0; background:transparent; color:var(--green); text-decoration:underline;
+    min-height:44px; padding:6px 0; font:inherit; cursor:pointer;
+  }
   .img-drop p, .img-drop span{display:block; margin:6px 0 0; font-size:12px; color:var(--ink-soft);}
   .img-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-top:14px;}
   .img-thumb{position:relative; border-radius:8px; overflow:hidden; border:1px solid var(--line); background:#fff;}
@@ -507,7 +513,7 @@
   }
   .btn-reset:hover{background:linear-gradient(180deg, #E66A66 0%, #B83232 100%);}
   .btn:focus-visible, .add-row:focus-visible, .row-del:focus-visible, .img-drop:focus-visible,
-  .sig-actions button:focus-visible{
+  .clear-selection:focus-visible, .sig-actions button:focus-visible{
     outline:3px solid #F1B46F; outline-offset:2px;
   }
   .btn:disabled{cursor:wait; opacity:.65;}
@@ -524,8 +530,8 @@
     .print-report-signatures{grid-template-columns:1fr 1fr 1fr; gap:4mm;}
     .toolbar{flex-direction:column; gap:8px; align-items:stretch;}
     .toolbar .actions{justify-content:stretch; width:100%;}
-    .toolbar .actions .btn{flex:1; min-height:36px; font-size:12px; padding:8px 10px;}
-    .field input[type=text], .field input[type=time], .field input[type=date],
+    .toolbar .actions .btn{flex:1; min-height:44px; font-size:12px; padding:8px 10px;}
+    .field input[type=text], .field input[type=time], .field input[type=date], .field input[type=number],
     .field select, .field textarea, table input{font-size:16px;}
     /* Checklist fijo en móvil: sin scroll horizontal, botones Sí/No siempre visibles */
     .table-wrap.checklist-wrap{overflow-x:visible;}
@@ -571,10 +577,10 @@
     table.insumos td.no-print{text-align:right; padding-top:2px;}
     table.insumos input, table.insumos select{font-size:16px; min-height:42px; border-color:var(--line);}
     .insumo-readonly{font-size:13px; min-height:40px; padding:9px 10px;}
-    .chip span{font-size:14px; min-height:42px;}
+    .chip span{font-size:14px; min-height:44px;}
     .img-grid{grid-template-columns:1fr 1fr; gap:9px;}
     .img-thumb img{height:120px;}
-    .img-caption{font-size:14px; min-height:46px;}
+    .img-caption{font-size:16px; min-height:46px;}
     .fixed-responsible{grid-template-columns:1fr; gap:10px; padding:13px;}
     .rt-signature-wrap{min-height:108px;}
     .rt-signature-wrap img{height:102px;}
@@ -608,7 +614,7 @@
 </head>
 <body>
 <div class="ios-notice" id="iosNotice" role="status">
-  <strong>Versión iPhone/iPad.</strong> Para DOCX se utilizará “Compartir” cuando iOS lo permita. Para PDF, usa el diálogo de impresión y luego “Compartir → Guardar en Archivos”.
+  <strong>iPhone y iPad.</strong> Descarga el PDF o DOCX y usa «Compartir → Guardar en Archivos» cuando esté disponible.
 </div>
 <!-- iOS V1.9 SAP/KPro: salida dual DOCX real + PDF estándar, manteniendo formulario Metro/Ruta. -->
 <!-- Selección múltiple, autoguardado, productos desplegables con componente activo/ISP, PDF corporativo depurado, fotografías con reseña y limpieza manual segura. -->
@@ -644,7 +650,7 @@
 
   <!-- 00 MODALIDAD -->
   <section class="mode-section">
-    <div class="sec-head"><span class="sec-num">00</span><h2>Modalidad del informe</h2></div>
+    <div class="sec-head"><h2>Modalidad del informe</h2></div>
     <p class="mode-help">Usa un único formulario para servicios Metro o servicios en Ruta. Al cambiar la modalidad se adaptan automáticamente los campos, instalaciones y checklist.</p>
     <div class="chip-group" id="grupoModo" role="radiogroup" aria-label="Modalidad del informe"></div>
   </section>
@@ -715,20 +721,16 @@
   <section>
     <div class="sec-head"><span class="sec-num">02</span><h2>Tipo de servicio</h2></div>
     <div class="field" style="margin-bottom:14px;">
-      <div class="field-label" id="labelClasificacion">Clasificación del servicio · selección múltiple</div>
-      <div class="chip-group" id="grupoClasificacion" role="group" aria-labelledby="labelClasificacion"></div>
-    </div>
-    <div class="field" style="margin-bottom:14px;">
-      <div class="field-label" id="labelPeriodicidad">Periodicidad · selección múltiple</div>
-      <div class="chip-group" id="grupoPeriodicidad" role="group" aria-labelledby="labelPeriodicidad"></div>
-    </div>
-    <div class="field">
-      <div class="field-label" id="labelServicio">Servicio / intervención</div>
+      <div class="field-label" id="labelServicio">Tipo de servicio / intervención · selección múltiple</div>
       <div class="chip-group" id="grupoServicio" role="group" aria-labelledby="labelServicio"></div>
       <div class="field route-only" id="bloqueServicioOtro" style="margin-top:12px;" hidden>
         <label for="servicioOtroDetalle">Especificar otro servicio realizado</label>
         <input type="text" id="servicioOtroDetalle" placeholder="Describe el servicio realizado">
       </div>
+    </div>
+    <div class="field">
+      <div class="field-label" id="labelPeriodicidad">Periodicidad · selección múltiple</div>
+      <div class="chip-group" id="grupoPeriodicidad" role="group" aria-labelledby="labelPeriodicidad"></div>
     </div>
     <div class="field route-only" id="bloquePlagasRuta" style="margin-top:16px;" hidden>
       <div class="field-label" id="labelPlagasRuta">Plaga(s) sinantrópica(s) objetivo · selección múltiple</div>
@@ -751,7 +753,7 @@
     </div>
   </section>
 
-  <!-- 04 CONTROL OPERATIVO UNIFICADO: integra los antiguos puntos 4, 5 y 6 -->
+  <!-- 04 CONTROL OPERATIVO Y DISPOSITIVOS · REGISTRO INTEGRADO -->
   <section class="operational-section" id="controlOperativo">
     <div class="sec-head"><span class="sec-num">04</span><h2 id="tituloControlOperativo">Control operativo y dispositivos · registro integrado</h2></div>
     <p class="operational-intro"><strong>Registra una sola vez lo inspeccionado, el resultado y la acción ejecutada.</strong> Completa únicamente los bloques utilizados; los apartados sin información no aparecerán en el DOCX ni en el PDF.</p>
@@ -772,12 +774,23 @@
     </div>
     <div class="field" style="margin-bottom:14px;"><label for="dispositivoObservacionGeneral">Códigos, restricciones, relocalización o seguimiento</label><textarea id="dispositivoObservacionGeneral" rows="3" placeholder="Ej.: EC-04 sin acceso por obras; TA-12 relocalizada 2 m hacia sector seguro"></textarea></div>
 
-    <p class="single-source-note"><strong>Registro único de productos:</strong> nombre comercial, N° ISP y cantidad o dosis se ingresan una sola vez en la <a href="#productosInsumos">sección 5 · Productos e insumos aplicados</a>.</p>
+    <p class="single-source-note">Registra cada producto en su módulo. Al seleccionarlo se completarán el componente activo y el N° ISP. Ingresa la dosis utilizada.</p>
     <div class="service-subtitle">Resultados por tipo de intervención</div>
 
     <details class="service-panel" data-services="Desratización">
       <summary>Desratización · estaciones y trampas</summary>
       <div class="service-panel-body">
+        <div id="bloqueProductosDesrat">
+          <div class="insumo-title">Productos utilizados · Desratización</div>
+          <p class="insumo-hint">Productos disponibles: rodenticidas autorizados incorporados en el registro maestro del formulario.</p>
+          <div class="table-wrap" tabindex="0">
+            <table class="insumos">
+              <thead><tr><th scope="col" style="width:33%">Producto</th><th scope="col" style="width:34%">Componente activo</th><th scope="col" style="width:14%">N° ISP</th><th scope="col" style="width:15%">Dosis utilizada</th><th scope="col" class="no-print"><span hidden>Acciones</span></th></tr></thead>
+              <tbody id="tablaDesrat"></tbody>
+            </table>
+          </div>
+          <button type="button" class="add-row no-print" data-target="tablaDesrat">+ agregar producto</button>
+        </div>
         <div class="route-only" id="bloqueEstadoDesratRuta" hidden>
           <div class="operational-grid" style="margin-bottom:12px;">
             <div class="chip-block">
@@ -851,6 +864,16 @@
     <details class="service-panel" data-services="Desinsectación|Control de termitas">
       <summary>Desinsectación · aplicación de plaguicidas</summary>
       <div class="service-panel-body">
+        <div id="bloqueProductosDesin">
+          <div class="insumo-title">Productos utilizados · Desinsectación</div>
+          <div class="table-wrap" tabindex="0">
+            <table class="insumos">
+              <thead><tr><th scope="col" style="width:33%">Producto</th><th scope="col" style="width:34%">Componente activo</th><th scope="col" style="width:14%">N° ISP</th><th scope="col" style="width:15%">Dosis utilizada</th><th scope="col" class="no-print"><span hidden>Acciones</span></th></tr></thead>
+              <tbody id="tablaDesin"></tbody>
+            </table>
+          </div>
+          <button type="button" class="add-row no-print" data-target="tablaDesin">+ agregar producto</button>
+        </div>
         <div class="chip-block" style="margin-bottom:12px;">
           <span class="field-label">Método de aplicación · selección múltiple</span>
           <div class="chip-group" id="grupoMetodoDesin"></div>
@@ -858,6 +881,34 @@
         <div class="operational-grid">
           <div class="field"><label for="desArea">Área o sector tratado</label><input type="text" id="desArea"></div>
           <div class="field wide"><label for="desObs">Observaciones técnicas</label><textarea id="desObs" rows="4" placeholder="Plaga objetivo, puntos tratados, condiciones, hallazgos y medidas de seguridad"></textarea></div>
+        </div>
+        <div class="service-subtitle" id="tituloActividadInsectos">Actividad vectorial – insectos</div>
+        <div class="chip-block">
+          <span class="field-label" id="labelCondicionInsectos">Condición de la actividad · selección múltiple</span>
+          <div class="chip-group" id="grupoCondicionInsectos" aria-labelledby="labelCondicionInsectos"></div>
+        </div>
+        <div class="operational-grid" style="margin-top:10px;">
+          <div class="chip-block">
+            <span class="field-label" id="labelOrigenInsectos">Origen de la infestación · selección única</span>
+            <div class="chip-group" id="grupoOrigenInsectos" aria-labelledby="labelOrigenInsectos"></div>
+            <button class="clear-selection no-print" type="button" id="limpiarOrigenInsectos" hidden>Quitar selección</button>
+          </div>
+          <div class="chip-block">
+            <span class="field-label" id="labelEspecieInsectos">Especies / grupos de insectos · selección múltiple</span>
+            <div class="chip-group" id="grupoEspecieInsectos" aria-labelledby="labelEspecieInsectos"></div>
+            <div class="field" id="bloqueOtraEspecieInsectos" style="margin-top:10px;" hidden>
+              <label for="desOtraEspecie">Especificar otra especie</label>
+              <input type="text" id="desOtraEspecie" disabled>
+            </div>
+          </div>
+          <div class="chip-block wide">
+            <span class="field-label" id="labelEvidenciaInsectos">Evidencia observada · selección múltiple</span>
+            <div class="chip-group" id="grupoEvidenciaInsectos" aria-labelledby="labelEvidenciaInsectos"></div>
+          </div>
+          <div class="field wide">
+            <label for="desActividadObs">Observaciones de actividad vectorial</label>
+            <textarea id="desActividadObs" rows="4" placeholder="Ubicación de los hallazgos, focos, condiciones, puntos de ingreso y necesidad de seguimiento"></textarea>
+          </div>
         </div>
       </div>
     </details>
@@ -885,6 +936,16 @@
     <details class="service-panel" data-services="Sanitización">
       <summary>Sanitización · producto y condiciones</summary>
       <div class="service-panel-body">
+        <div id="bloqueProductosSan">
+          <div class="insumo-title">Productos utilizados · Sanitización</div>
+          <div class="table-wrap" tabindex="0">
+            <table class="insumos">
+              <thead><tr><th scope="col" style="width:33%">Producto</th><th scope="col" style="width:34%">Componente activo</th><th scope="col" style="width:14%">N° ISP</th><th scope="col" style="width:15%">Dosis utilizada</th><th scope="col" class="no-print"><span hidden>Acciones</span></th></tr></thead>
+              <tbody id="tablaSan"></tbody>
+            </table>
+          </div>
+          <button type="button" class="add-row no-print" data-target="tablaSan">+ agregar producto</button>
+        </div>
         <div class="operational-grid">
           <div class="field"><label for="sanArea">Área o sector tratado</label><input type="text" id="sanArea"></div>
           <div class="field wide"><label for="sanObs">Observaciones técnicas</label><textarea id="sanObs" rows="4" placeholder="Método, superficies, tiempo de contacto, ventilación y reingreso"></textarea></div>
@@ -893,71 +954,37 @@
     </details>
   </section>
 
-  <!-- 05 INSUMOS -->
-  <section id="productosInsumos">
-    <div class="sec-head"><span class="sec-num">05</span><h2>Productos e insumos aplicados · registro único</h2></div>
-    <p class="operational-intro">Selecciona el producto aplicado. El sistema completará automáticamente el componente activo y el N° ISP; el técnico solo debe ingresar la dosis utilizada. Estos datos se incorporarán al DOCX editable y al PDF.</p>
-
-    <div id="bloqueProductosDesrat">
-      <div class="insumo-title">Desratización</div>
-      <p class="insumo-hint">Productos disponibles: rodenticidas autorizados incorporados en el registro maestro del formulario.</p>
-      <div class="table-wrap" tabindex="0">
-        <table class="insumos">
-          <thead><tr><th scope="col" style="width:33%">Producto</th><th scope="col" style="width:34%">Componente activo</th><th scope="col" style="width:14%">N° ISP</th><th scope="col" style="width:15%">Dosis utilizada</th><th scope="col" class="no-print"><span hidden>Acciones</span></th></tr></thead>
-          <tbody id="tablaDesrat"></tbody>
-        </table>
-      </div>
-      <button type="button" class="add-row no-print" data-target="tablaDesrat">+ agregar producto</button>
-    </div>
-
-    <div id="bloqueProductosDesin">
-      <div class="insumo-title">Desinsectación / Sanitización</div>
-      <p class="insumo-hint">El desplegable incluye el sanitizante y los insecticidas definidos para la operación.</p>
-      <div class="table-wrap" tabindex="0">
-        <table class="insumos">
-          <thead><tr><th scope="col" style="width:33%">Producto</th><th scope="col" style="width:34%">Componente activo</th><th scope="col" style="width:14%">N° ISP</th><th scope="col" style="width:15%">Dosis utilizada</th><th scope="col" class="no-print"><span hidden>Acciones</span></th></tr></thead>
-          <tbody id="tablaDesin"></tbody>
-        </table>
-      </div>
-      <button type="button" class="add-row no-print" data-target="tablaDesin">+ agregar producto</button>
-    </div>
-  </section>
-
-  <!-- 06 EVALUACIÓN TÉCNICA -->
-  <section class="metro-only" id="seccionEvaluacionTecnica">
-    <div class="sec-head"><span class="sec-num">06</span><h2>Evaluación técnica · selección múltiple</h2></div>
-    <div class="chip-group" id="grupoEvaluacion" role="group" aria-label="Evaluación técnica · selección múltiple" style="margin-bottom:12px;"></div>
-    <div class="field"><label for="especie">Especie observada (si aplica)</label><input type="text" id="especie"></div>
-  </section>
-
-  <!-- ===== CIERRE ESCRITO (07 → 08 → 09) ===== -->
-  <!-- 07 OBSERVACIONES -->
+  <!-- 05 OBSERVACIONES TÉCNICAS -->
   <section class="obs-destacada">
-    <div class="sec-head"><span class="sec-num" id="numSecObservaciones">07</span><h2>Observaciones técnicas</h2></div>
+    <div class="sec-head"><span class="sec-num" id="numSecObservaciones">05</span><h2>Observaciones técnicas</h2></div>
     <p class="obs-hint">Sección clave para el cliente: describe con claridad lo encontrado, el servicio realizado y el estado del sector. Esta información quedará destacada en el documento editable y en el PDF.</p>
     <div class="field"><textarea id="observaciones" rows="7" placeholder="Ej.: Se detectó acumulación de residuos y aberturas sin sellar en el sector intervenido. Se realizó limpieza y aplicación de producto. Se recomienda sellar aperturas y reforzar higiene para evitar reingreso del vector."></textarea></div>
   </section>
 
-  <!-- 08 RECOMENDACIONES -->
+  <!-- 06 RECOMENDACIONES -->
   <section>
-    <div class="sec-head"><span class="sec-num" id="numSecRecomendaciones">08</span><h2>Recomendaciones</h2></div>
+    <div class="sec-head"><span class="sec-num" id="numSecRecomendaciones">06</span><h2>Recomendaciones</h2></div>
     <div class="chip-group" id="grupoRecomendaciones" style="margin-bottom:10px;"></div>
     <div class="field"><label for="recomendacionOtro">Otro</label><input type="text" id="recomendacionOtro"></div>
   </section>
 
-  <!-- REGISTRO FOTOGRÁFICO -->
+  <!-- 07 REGISTRO FOTOGRÁFICO -->
   <section class="no-print-images">
-    <div class="sec-head"><span class="sec-num" id="numSecFotos">09</span><h2>Registro fotográfico</h2></div>
-    <button type="button" class="img-drop no-print" id="imgDrop" aria-controls="imgInput">
-      <span>Toca para elegir fotos (hasta 12). Agrega una reseña breve de ubicación a cada imagen antes de generar el DOCX o PDF</span>
-    </button>
+    <div class="sec-head"><span class="sec-num" id="numSecFotos">07</span><h2>Registro fotográfico</h2></div>
+    <div class="photo-pickers no-print">
+      <button type="button" class="img-drop" id="imgDrop" aria-controls="imgInput">Elegir fotos</button>
+      <button type="button" class="img-drop" id="imgCamera" aria-controls="imgCameraInput">Tomar foto</button>
+    </div>
+    <p class="operational-intro">Adjunta hasta 12 fotografías y agrega una reseña de ubicación a cada una.</p>
+    <p class="operational-intro" id="estadoFoto" role="status" hidden></p>
     <input type="file" id="imgInput" accept="image/*" multiple hidden>
+    <input type="file" id="imgCameraInput" accept="image/*" capture="environment" hidden>
     <div class="img-grid" id="imgGrid"></div>
   </section>
 
-  <!-- 11 PERSONAL Y FIRMAS -->
+  <!-- 08 RECEPCIÓN DEL SERVICIO MIP -->
   <section>
-    <div class="sec-head"><span class="sec-num" id="numSecFirmas">10</span><h2>Recepción del servicio MIP</h2></div>
+    <div class="sec-head"><span class="sec-num" id="numSecFirmas">08</span><h2>Recepción del servicio MIP</h2></div>
 
     <div class="insumo-title">Firma del técnico ejecutor</div>
     <p class="operational-intro">El nombre se toma automáticamente desde la sección 01 · Información general. La fecha y hora quedan registradas al firmar.</p>
@@ -1035,22 +1062,16 @@
   'use strict';
 
   function limpiarBorradoresMIP(){
-    try{
-      var keys = [];
-      for(var i = 0; i < localStorage.length; i++){
-        var key = localStorage.key(i);
-        if(key && /^tecnoambiente_mip_/i.test(key)) keys.push(key);
-      }
-      keys.forEach(function(key){ localStorage.removeItem(key); });
-    }catch(e){}
-    try{
-      var sessionKeys = [];
-      for(var j = 0; j < sessionStorage.length; j++){
-        var skey = sessionStorage.key(j);
-        if(skey && /^tecnoambiente_mip_/i.test(skey)) sessionKeys.push(skey);
-      }
-      sessionKeys.forEach(function(key){ sessionStorage.removeItem(key); });
-    }catch(e2){}
+    [
+      'tecnoambiente_mip_borrador_v3',
+      'tecnoambiente_mip_borrador_medios_v3',
+      'tecnoambiente_mip_reporte_optimizado_v1',
+      'tecnoambiente_mip_metro_productos_integrados_v2'
+    ].forEach(function(key){
+      try{ localStorage.removeItem(key); }catch(e){}
+      try{ sessionStorage.removeItem(key); }catch(e){}
+    });
+    if(typeof window.__MIP_CLEAR_DRAFT_DB === 'function') window.__MIP_CLEAR_DRAFT_DB();
   }
 
   function limpiarCanvasFirma(canvasId, statusId, metaId, blockId){
@@ -1066,6 +1087,7 @@
       }catch(e){}
       canvas.dataset.signed = 'false';
       canvas.dataset.signedAt = '';
+      canvas.dispatchEvent(new Event('mip:limpiar-firma'));
     }
     var status = document.getElementById(statusId);
     var meta = document.getElementById(metaId);
@@ -1133,6 +1155,8 @@
     // Dejar únicamente las filas base de insumos y vaciarlas.
     conservarDosFilasLimpias('tablaDesrat');
     conservarDosFilasLimpias('tablaDesin');
+    conservarDosFilasLimpias('tablaSan');
+    if(typeof window.__MIP_RESET_PRODUCT_ROWS === 'function') window.__MIP_RESET_PRODUCT_ROWS();
 
     // Borrar registro fotográfico y reseñas.
     var grid = document.getElementById('imgGrid');
@@ -1159,19 +1183,11 @@
     if(modoRadio) modoRadio.checked = true;
     if(typeof window.aplicarModoMIP === 'function') window.aplicarModoMIP(modoAntesDeLimpiar, {conservarDatosCliente:false, silencioso:true});
 
-    // Limpieza final del almacenamiento; se repite para cubrir Edge/file:// y cualquier tarea pendiente.
-    limpiarBorradoresMIP();
-
     var status = document.getElementById('statusMsg');
     if(status) status.textContent = 'Formulario limpio · modalidad ' + (modoAntesDeLimpiar === 'ruta' ? 'Ruta' : 'Metro') + ' lista para un nuevo servicio';
     try{ window.scrollTo({top:0, behavior:'smooth'}); }catch(e9){ try{ window.scrollTo(0,0); }catch(e10){} }
 
-    // NO disparamos change/input aquí: esos eventos alimentan el autoguardado.
-    window.setTimeout(function(){
-      try{ limpiarBorradoresMIP(); }catch(e11){}
-      // El bloqueo se mantiene hasta que el usuario vuelva a interactuar con un campo.
-      // Así Edge no puede regrabar automáticamente valores antiguos después del reinicio.
-    }, 1200);
+    // El bloqueo se mantiene hasta que el usuario vuelva a interactuar con un campo.
     return false;
   };
 
@@ -1207,7 +1223,7 @@
   // ---------- helper: grupo de chips ----------
   function buildChipGroup(containerId, options, multiple, name){
     var container = document.getElementById(containerId);
-    container.setAttribute('role', 'group');
+    container.setAttribute('role', multiple ? 'group' : 'radiogroup');
     options.forEach(function(opt, i){
       var label = document.createElement('label');
       label.className = 'chip';
@@ -1223,6 +1239,12 @@
     });
   }
 
+  var SERVICIOS_MIP = [
+    'Preventivo','Monitoreo','Adicional','Emergencia','Garantía','Inspección técnica',
+    'Desratización','Desinsectación','Equipos UV','Sanitización','Retiro de vector','Seguimiento'
+  ];
+  var METODOS_DESIN = ['Aspersión','Aplicación de gel','Polvo seco','Termonebulización','Nebulización ULV','Cebos / trampas'];
+
   var CONFIG_MODO = {
     metro: {
       label: 'Metro',
@@ -1230,9 +1252,8 @@
       badge: 'Modalidad Metro',
       instalaciones: ['Estación','SER','Talleres','CCA','PML','CDC','Bajo Andén','Cola de Maniobras y Fosos','Cochera','Intermodal','Otros'],
       periodicidades: ['Mensual','Quincenal','Correctiva','Trimestral'],
-      servicios: ['Monitoreo','Inspección Técnica','Desratización','Desinsectación','Equipos UV','Sanitización','Retiro de Vector','Seguimiento','Emergencia'],
+      servicios: SERVICIOS_MIP,
       controles: ['Limpieza de fecas','Sanitización','Aplicación de amonio cuaternario','Aplicación de rodenticida','Aplicación de insecticida','Sellado preventivo','Reposición de dispositivos','Retiro de vector','Refuerzo sistema MIP'],
-      evaluacionMultiple: true,
       recomendaciones: ['Mantener condiciones de higiene','Retirar fuentes de alimento','Eliminar acumulación de residuos','Mantener puertas cerradas','Sellar aberturas','Mantener monitoreo periódico','Reforzar Programa MIP','Garantizar accesibilidad y despeje de estaciones cebaderas y trampas de monitoreo.','Capacitar al personal en prácticas de higiene, manejo adecuado de residuos y medidas preventivas.','Mantener la infraestructura en condiciones.'],
       estado: ['Presencia de roedores','Presencia de insectos','Presencia de fecas','Presencia de orina','Presencia de madrigueras','Restos alimenticios','Acumulación de basura','Malos olores','Agua estancada','Daño estructural','Aberturas sin sellar','Condiciones de higiene adecuadas']
     },
@@ -1242,9 +1263,8 @@
       badge: 'Servicio en Ruta',
       instalaciones: ['Planta productiva','Bodega','Casino / Cocina','Oficinas','Baños / Camarines','Sala de residuos','Patio / Exterior','Carga y descarga','Vivienda','Cocina domiciliaria','Dormitorio','Living / Comedor','Baño domiciliario','Patio / Jardín','Entretecho','Bodega domiciliaria','Otros'],
       periodicidades: ['Mensual','Quincenal','Semanal','Bimestral','Trimestral','Semestral','Anual','Correctiva'],
-      servicios: ['Monitoreo','Inspección Técnica','Desratización','Desinsectación','Equipos UV','Sanitización','Control de termitas','Retiro de Vector','Limpieza / Retiro de fecas','Seguimiento','Emergencia','Otro'],
+      servicios: SERVICIOS_MIP.concat(['Control de termitas','Limpieza / Retiro de fecas','Otro']),
       controles: ['Limpieza de fecas','Sanitización','Aplicación de rodenticida','Aplicación de insecticida líquido','Aplicación de insecticida gel','Aplicación de polvo insecticida','Tratamiento termiticida','Instalación / reposición de cebaderos','Instalación / reposición de trampas','Sellado preventivo','Retiro de vector','Refuerzo sistema MIP'],
-      evaluacionMultiple: false,
       recomendaciones: ['Mantener condiciones de higiene','Retirar fuentes de alimento','Eliminar acumulación de residuos','Controlar humedad / filtraciones','Sellar aberturas y puntos de ingreso','Mantener puertas y accesos cerrados','Reparar mallas / burletes / rejillas','Ordenar vegetación y perímetro','Mantener monitoreo periódico','Reforzar Programa MIP','Garantizar accesibilidad y despeje de estaciones cebaderas y trampas de monitoreo.','Capacitar al personal en prácticas de higiene, manejo adecuado de residuos y medidas preventivas.','Mantener la infraestructura en condiciones.'],
       estado: ['Presencia de roedores','Presencia de insectos rastreros','Presencia de insectos voladores','Indicios de termitas / daño en madera','Presencia de fecas','Presencia de orina / manchas','Madrigueras, nidos o refugios','Restos o fuentes de alimento','Acumulación de residuos','Agua estancada / humedad','Malos olores','Daño estructural','Aberturas o puntos de ingreso sin sellar','Desagües / cámaras con condición de riesgo','Vegetación u objetos adosados al perímetro','Condiciones de higiene adecuadas']
     }
@@ -1308,11 +1328,7 @@
     reconstruirGrupo('grupoServicio', cfg.servicios, true, 'servicio');
     reconstruirGrupo('grupoControl', cfg.controles, true, 'control');
     if(modo === 'ruta') actualizarControlesRutaSegunPlaga();
-    if(modo === 'metro'){
-      reconstruirGrupo('grupoEvaluacion', ['Sin evidencia de actividad','Evidencia de tránsito','Actividad baja','Actividad moderada','Actividad alta'], true, 'evaluacion');
-    }else{
-      limpiarGrupo('grupoEvaluacion');
-    }
+    else reconstruirGrupo('grupoMetodoDesin', METODOS_DESIN, true, 'metodoDesin');
     reconstruirGrupo('grupoRecomendaciones', cfg.recomendaciones, true, 'recomendacion');
     reconstruirChecklist('tablaEstado', cfg.estado, 'estado');
     sincronizarCamposOtros(!opciones.conservarDatosCliente);
@@ -1320,17 +1336,11 @@
     sincronizarOtraPlagaRuta(!opciones.conservarDatosCliente);
     sincronizarCoordinadoraRuta();
     sincronizarPanelesServicio();
-    actualizarNumeracionSecciones(modo);
+    sincronizarActividadInsectos();
 
     // Ruta registra únicamente la hora de inicio; se elimina cualquier hora de término heredada.
     var horaTermino = document.getElementById('horaTermino');
     if(modo === 'ruta' && horaTermino) horaTermino.value = '';
-
-    var tituloInsumo = document.querySelector('#tablaDesin') && document.querySelector('#tablaDesin').closest('.table-wrap');
-    if(tituloInsumo){
-      var prev = tituloInsumo.previousElementSibling;
-      if(prev && prev.classList.contains('insumo-title')) prev.textContent = modo === 'ruta' ? 'Desinsectación / Sanitización / Termitas' : 'Desinsectación / Sanitización';
-    }
 
     if(!opciones.conservarDatosCliente){
       var cliente = document.getElementById('cliente');
@@ -1365,12 +1375,25 @@
   var modoMetro = document.querySelector('#grupoModo input[value="Metro"]');
   if(modoMetro) modoMetro.checked = true;
   buildChipGroup('grupoTipoCliente', ['Industrial / Fábrica','Comercial / Institucional','Residencial / Domicilio','Condominio / Comunidad','Bodega / Logística','Gastronomía','Otros'], true, 'tipoCliente');
-  buildChipGroup('grupoClasificacion', ['Preventivo','Monitoreo','Adicional','Emergencia','Garantía'], true, 'clasificacionVisita');
   buildChipGroup('grupoCondicionDispositivos', ['Identificación correcta','Ubicación adecuada y segura','Acceso disponible','Sin dispositivos en el sector'], true, 'condicionDispositivos');
   buildChipGroup('grupoCondicionVector', ['Tránsito puntual (sin anidación)','Anidación activa / presencia establecida','Sin actividad / sin indicios / sin incidencias'], true, 'condicionVector');
   buildChipGroup('grupoOrigenVector', ['Externo','Interno'], true, 'origenVector');
   buildChipGroup('grupoEspecieVector', ['Rata de tejado (Rattus rattus)','Laucha (Mus musculus)','Rata de alcantarilla (Rattus norvegicus)','Otra especie'], true, 'especieVector');
-  buildChipGroup('grupoMetodoDesin', ['Aspersión','Aplicación de gel','Polvo seco','Termonebulización','Nebulización ULV','Cebos / trampas'], true, 'metodoDesin');
+  var SIN_ACTIVIDAD_INSECTOS = 'Sin actividad / sin indicios de infestación';
+  var SIN_EVIDENCIA_INSECTOS = 'Sin evidencia visible';
+  var EVIDENCIA_ACTIVIDAD_INSECTOS = ['Insectos vivos','Huevos / ootecas','Larvas / pupas','Nidos / criaderos'];
+  buildChipGroup('grupoCondicionInsectos', [
+    'Presencia puntual de insectos','Actividad recurrente / presencia establecida','Foco de infestación activo',
+    'Presencia de criaderos, nidos o focos reproductivos', SIN_ACTIVIDAD_INSECTOS
+  ], true, 'condicionInsectos');
+  buildChipGroup('grupoOrigenInsectos', ['Externo','Interno','No determinado'], false, 'origenInsectos');
+  buildChipGroup('grupoEspecieInsectos', [
+    'Cucarachas','Hormigas','Moscas','Mosquitos / zancudos','Pulgas','Chinches de cama','Avispas','Polillas','Otra especie'
+  ], true, 'especieInsectos');
+  buildChipGroup('grupoEvidenciaInsectos', [
+    'Insectos vivos','Insectos muertos','Huevos / ootecas','Larvas / pupas','Nidos / criaderos',
+    'Restos / mudas de insectos','Capturas en trampas', SIN_EVIDENCIA_INSECTOS
+  ], true, 'evidenciaInsectos');
   buildChipGroup('grupoUvEstimacion', ['Nulo','Bajo','Medio','Alto'], true, 'uvEstimacion');
   buildChipGroup('grupoUvOrigen', ['Interior','Exterior'], true, 'uvOrigen');
   buildChipGroup('grupoUvActividad', ['Tránsito puntual (sin anidación)','Anidación activa / presencia establecida','Sin actividad / sin indicios / sin incidencias'], true, 'uvActividad');
@@ -1412,15 +1435,47 @@
     return plagas.filter(function(p){ return p !== 'Otra'; }).concat(plagas.indexOf('Otra') >= 0 && otra ? [otra] : []);
   }
 
-  function actualizarNumeracionSecciones(modo){
-    var numeros = modo === 'ruta'
-      ? {numSecObservaciones:'06', numSecRecomendaciones:'07', numSecFotos:'08', numSecFirmas:'09'}
-      : {numSecObservaciones:'07', numSecRecomendaciones:'08', numSecFotos:'09', numSecFirmas:'10'};
-    Object.keys(numeros).forEach(function(id){
-      var el = document.getElementById(id);
-      if(el) el.textContent = numeros[id];
+  function sincronizarActividadInsectos(){
+    var otra = document.querySelector('#grupoEspecieInsectos input[value="Otra especie"]:checked');
+    document.getElementById('bloqueOtraEspecieInsectos').hidden = !otra;
+    document.getElementById('desOtraEspecie').disabled = !otra;
+    document.getElementById('limpiarOrigenInsectos').hidden = !document.querySelector('#grupoOrigenInsectos input:checked');
+  }
+
+  function excluirOpcionIncompatible(event, valorAusencia){
+    var seleccion = event.target;
+    if(!seleccion.checked) return;
+    event.currentTarget.querySelectorAll('input:checked').forEach(function(opcion){
+      if(opcion !== seleccion && (seleccion.value === valorAusencia || opcion.value === valorAusencia)){
+        opcion.checked = false;
+      }
     });
   }
+
+  document.getElementById('grupoCondicionInsectos').addEventListener('change', function(event){
+    excluirOpcionIncompatible(event, SIN_ACTIVIDAD_INSECTOS);
+    if(event.target.checked && event.target.value === SIN_ACTIVIDAD_INSECTOS){
+      document.querySelectorAll('#grupoEvidenciaInsectos input:checked').forEach(function(input){
+        if(EVIDENCIA_ACTIVIDAD_INSECTOS.indexOf(input.value) >= 0) input.checked = false;
+      });
+    }
+  });
+  document.getElementById('grupoEvidenciaInsectos').addEventListener('change', function(event){
+    excluirOpcionIncompatible(event, SIN_EVIDENCIA_INSECTOS);
+    if(event.target.checked && EVIDENCIA_ACTIVIDAD_INSECTOS.indexOf(event.target.value) >= 0){
+      document.querySelector('#grupoCondicionInsectos input[value="' + SIN_ACTIVIDAD_INSECTOS + '"]').checked = false;
+    }
+  });
+  document.getElementById('grupoEspecieInsectos').addEventListener('change', sincronizarActividadInsectos);
+  document.getElementById('grupoOrigenInsectos').addEventListener('change', sincronizarActividadInsectos);
+  document.getElementById('limpiarOrigenInsectos').addEventListener('click', function(){
+    var origen = document.querySelector('#grupoOrigenInsectos input:checked');
+    if(origen){
+      origen.checked = false;
+      origen.focus();
+      origen.dispatchEvent(new Event('change', {bubbles:true}));
+    }
+  });
 
   function valoresSeleccionadosDirectos(containerId){
     var c = document.getElementById(containerId);
@@ -1443,10 +1498,13 @@
     var servicios = valoresSeleccionadosDirectos('grupoServicio');
     var opciones = ['Limpieza de fecas','Sanitización','Sellado preventivo','Retiro de vector','Refuerzo sistema MIP'];
     function agregar(lista){ lista.forEach(function(v){ if(opciones.indexOf(v) < 0) opciones.push(v); }); }
-    if(plagas.indexOf('Roedores') >= 0){
+    if(plagas.indexOf('Roedores') >= 0 || servicios.indexOf('Desratización') >= 0){
       agregar(['Aplicación de rodenticida','Instalación / reposición de cebaderos','Instalación / reposición de trampas']);
     }
     var insectos = plagas.filter(function(p){ return p !== 'Roedores'; });
+    if(!insectos.length && servicios.indexOf('Desinsectación') >= 0){
+      agregar(['Aplicación de insecticida líquido','Aplicación de insecticida gel','Aplicación de polvo insecticida']);
+    }
     if(insectos.length){
       if(insectos.some(function(p){ return ['Cucarachas','Hormigas','Otra'].indexOf(p) >= 0; })) agregar(['Aplicación de insecticida líquido','Aplicación de insecticida gel','Aplicación de polvo insecticida']);
       if(insectos.some(function(p){ return ['Moscas','Mosquitos'].indexOf(p) >= 0; })) agregar(['Aplicación de insecticida líquido']);
@@ -1468,6 +1526,7 @@
     if(plagas.some(function(p){ return ['Avispas','Pulgas','Chinches','Arañas'].indexOf(p) >= 0; })) agregar(['Aspersión','Polvo seco']);
     if(plagas.indexOf('Otra') >= 0) agregar(['Aspersión','Aplicación de gel','Polvo seco','Termonebulización','Nebulización ULV','Cebos / trampas']);
     if(servicios.indexOf('Control de termitas') >= 0) agregar(['Aspersión','Aplicación de gel','Polvo seco']);
+    if(!metodos.length && servicios.indexOf('Desinsectación') >= 0) agregar(METODOS_DESIN);
     reconstruirGrupoConservando('grupoMetodoDesin', metodos, 'metodoDesin');
   }
 
@@ -1486,25 +1545,16 @@
       var asociados = data.split('|');
       var porServicio = asociados.some(function(servicio){ return seleccionados.indexOf(servicio) >= 0; });
       if(modo === 'ruta' && data === 'Desratización'){
-        panel.hidden = !tieneRoedores;
-        panel.open = tieneRoedores;
+        panel.hidden = !(tieneRoedores || porServicio);
+        panel.open = !panel.hidden;
       }else if(modo === 'ruta' && data === 'Desinsectación|Control de termitas'){
-        var termitas = seleccionados.indexOf('Control de termitas') >= 0;
-        panel.hidden = !(tieneOtraNoRoedor || termitas);
+        panel.hidden = !(tieneOtraNoRoedor || porServicio);
         panel.open = !panel.hidden;
       }else{
         panel.hidden = false;
         panel.open = porServicio;
       }
     });
-
-    var desratProductos = document.getElementById('bloqueProductosDesrat');
-    var desinProductos = document.getElementById('bloqueProductosDesin');
-    if(desratProductos) desratProductos.hidden = modo === 'ruta' && !tieneRoedores;
-    if(desinProductos){
-      var servicioDesin = seleccionados.indexOf('Desinsectación') >= 0 || seleccionados.indexOf('Sanitización') >= 0 || seleccionados.indexOf('Control de termitas') >= 0;
-      desinProductos.hidden = modo === 'ruta' && !(tieneOtraNoRoedor || servicioDesin);
-    }
   }
 
   function sincronizarCamposOtros(limpiarSiOculto){
@@ -1583,13 +1633,15 @@
       {tipo:'Rodenticida', isp:'P-598/26', producto:'RASTOP PASTA 0,005%', activo:'Bromadiolona'}
     ],
     tablaDesin: [
-      {tipo:'Sanitizante', isp:'D-201/26', producto:'TECSA CLEAN QUAT DESINFECTANTE CONCENTRADO SOLUBLE 10%', activo:'Compuestos de amonio cuaternario de doble cadena: di-C8–C10-alquildimetil, cloruros (CAS 68424-95-3)'},
       {tipo:'Insecticida', isp:'P-101/24', producto:'CYPERKILL 25 EC', activo:'Cipermetrina'},
       {tipo:'Insecticida', isp:'P-815/23', producto:'AQUATRIN 2,5 SC', activo:'Deltametrina'},
       {tipo:'Insecticida', isp:'P-1042/25', producto:'BORACID INSECTICIDA POLVO SECO 96%', activo:'Ácido bórico'},
       {tipo:'Insecticida', isp:'P-888/25', producto:'BELL MAX GEL 2,15%', activo:'Imidacloprid'},
       {tipo:'Insecticida', isp:'P-772/26', producto:'CIPERPOINT EC 20%', activo:'Cipermetrina'},
       {tipo:'Insecticida', isp:'P-1054/25', producto:'TEMPRID SC SUSPENSIÓN CONCENTRADA', activo:'Imidacloprid'}
+    ],
+    tablaSan: [
+      {tipo:'Sanitizante', isp:'D-201/26', producto:'TECSA CLEAN QUAT DESINFECTANTE CONCENTRADO SOLUBLE 10%', activo:'Compuestos de amonio cuaternario de doble cadena: di-C8–C10-alquildimetil, cloruros (CAS 68424-95-3)'}
     ]
   };
 
@@ -1639,7 +1691,7 @@
   }
 
   function sincronizarFilasInsumos(){
-    ['tablaDesrat','tablaDesin'].forEach(function(tbodyId){
+    ['tablaDesrat','tablaDesin','tablaSan'].forEach(function(tbodyId){
       var tbody = document.getElementById(tbodyId);
       if(!tbody) return;
       Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function(row){ actualizarFilaInsumo(row, tbodyId); });
@@ -1696,13 +1748,19 @@
     tr.appendChild(tdAcciones);
 
     select.addEventListener('change', function(){ actualizarFilaInsumo(tr, tbodyId); });
-    eliminar.addEventListener('click', function(){ tr.remove(); });
+    eliminar.addEventListener('click', function(){
+      tr.remove();
+      scheduleSave(200);
+    });
     tbody.appendChild(tr);
   }
 
-  ['tablaDesrat','tablaDesin'].forEach(function(id){ addInsumoRow(id); addInsumoRow(id); });
+  ['tablaDesrat','tablaDesin','tablaSan'].forEach(function(id){ addInsumoRow(id); addInsumoRow(id); });
   Array.prototype.forEach.call(document.querySelectorAll('.add-row'), function(btn){
-    btn.addEventListener('click', function(){ addInsumoRow(btn.getAttribute('data-target')); });
+    btn.addEventListener('click', function(){
+      addInsumoRow(btn.getAttribute('data-target'));
+      scheduleSave(200);
+    });
   });
 
   function unirDatoProducto(actual, nuevo){
@@ -1739,7 +1797,7 @@
     }
   }
 
-  ['tablaDesrat','tablaDesin'].forEach(function(id){
+  ['tablaDesrat','tablaDesin','tablaSan'].forEach(function(id){
     var tbody = document.getElementById(id);
     tbody.addEventListener('change', function(event){
       var row = event.target && event.target.closest ? event.target.closest('tr') : null;
@@ -1755,8 +1813,14 @@
   // ---------- imágenes ----------
   var imgDrop = document.getElementById('imgDrop');
   var imgInput = document.getElementById('imgInput');
+  var imgCameraInput = document.getElementById('imgCameraInput');
   var imgGrid = document.getElementById('imgGrid');
+  var estadoFoto = document.getElementById('estadoFoto');
+  var LIMITE_FOTOS_MIP = 12;
+  var colaFotos = [];
+  var preparandoFoto = false;
   imgDrop.addEventListener('click', function(){ imgInput.click(); });
+  document.getElementById('imgCamera').addEventListener('click', function(){ imgCameraInput.click(); });
 
   function prepararFoto(file, callback){
     var reader = new FileReader();
@@ -1764,8 +1828,12 @@
     reader.onload = function(ev){
       var original = ev.target.result;
       var image = new Image();
-      image.onerror = function(){ callback(original); };
+      image.onerror = function(){ callback(null); };
       image.onload = function(){
+        if(image.naturalWidth <= 8 || image.naturalHeight <= 8){
+          callback(null);
+          return;
+        }
         var maxSide = 1280;
         var scale = Math.min(1, maxSide / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
         var width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
@@ -1787,10 +1855,11 @@
     reader.readAsDataURL(file);
   }
 
-  function agregarFoto(dataUrl){
+  function agregarFoto(dataUrl, resena, fotoId){
     if(!dataUrl) return;
     var thumb = document.createElement('div');
     thumb.className = 'img-thumb';
+    thumb.dataset.fotoId = fotoId || nuevoIdLocal();
     var img = document.createElement('img');
     img.src = dataUrl;
     img.alt = 'Fotografía adjunta al informe';
@@ -1800,7 +1869,10 @@
     del.className = 'no-print';
     del.setAttribute('aria-label', 'Eliminar fotografía');
     del.textContent = '✕';
-    del.addEventListener('click', function(){ thumb.remove(); });
+    del.addEventListener('click', function(){
+      thumb.remove();
+      solicitarGuardadoMedios();
+    });
 
     var captionWrap = document.createElement('div');
     captionWrap.className = 'img-caption-wrap';
@@ -1812,6 +1884,7 @@
     caption.maxLength = 140;
     caption.placeholder = 'Ej.: Bajo andén, sector poniente · junto a cámara eléctrica';
     caption.setAttribute('aria-label', 'Reseña o ubicación de la fotografía');
+    caption.value = resena || '';
     captionWrap.appendChild(captionLabel);
     captionWrap.appendChild(caption);
 
@@ -1819,16 +1892,50 @@
     thumb.appendChild(del);
     thumb.appendChild(captionWrap);
     imgGrid.appendChild(thumb);
+    return thumb;
   }
 
-  imgInput.addEventListener('change', function(e){
-    Array.prototype.forEach.call(e.target.files, function(file){
-      if(file && file.type && file.type.indexOf('image/') === 0){
-        prepararFoto(file, agregarFoto);
+  function actualizarEstadoFoto(mensaje){
+    estadoFoto.textContent = mensaje;
+    estadoFoto.hidden = !mensaje;
+  }
+
+  function prepararSiguienteFoto(){
+    if(preparandoFoto || !colaFotos.length) return;
+    var ciclo = cicloFormulario;
+    preparandoFoto = true;
+    prepararFoto(colaFotos.shift(), function(dataUrl){
+      if(ciclo !== cicloFormulario) return;
+      preparandoFoto = false;
+      if(!dataUrl){
+        actualizarEstadoFoto('No se pudo abrir una fotografía. Selecciona una imagen válida en JPG o PNG.');
+      }else if(imgGrid.childElementCount >= LIMITE_FOTOS_MIP){
+        actualizarEstadoFoto('Se alcanzó el máximo de 12 fotografías.');
+      }else{
+        agregarFoto(dataUrl);
+        solicitarGuardadoMedios();
       }
+      prepararSiguienteFoto();
     });
-    imgInput.value = '';
-  });
+  }
+
+  function cargarFotosSeleccionadas(event){
+    var archivos = Array.from(event.target.files);
+    event.target.value = '';
+    if(!archivos.length) return;
+    var fotos = archivos.filter(function(file){
+      return file.type.indexOf('image/') === 0 || (!file.type && /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name));
+    });
+    var cupos = Math.max(0, LIMITE_FOTOS_MIP - imgGrid.childElementCount - colaFotos.length - Number(preparandoFoto));
+    var mensaje = fotos.length < archivos.length ? 'Selecciona archivos de imagen.' : '';
+    if(fotos.length > cupos) mensaje = 'El informe admite hasta 12 fotografías.';
+    actualizarEstadoFoto(mensaje);
+    colaFotos = colaFotos.concat(fotos.slice(0, cupos));
+    prepararSiguienteFoto();
+  }
+
+  imgInput.addEventListener('change', cargarFotosSeleccionadas);
+  imgCameraInput.addEventListener('change', cargarFotosSeleccionadas);
 
   // ---------- firmas digitales (canvas → imagen en PDF) ----------
   function formatFechaHoraFirma(date){
@@ -1837,6 +1944,8 @@
     return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() +
       ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
+
+  var restauradoresFirma = {};
 
   function setupSignature(canvasId, statusId, metaId, blockId){
     var canvas = document.getElementById(canvasId);
@@ -1847,9 +1956,10 @@
     var drawing = false;
     var last = null;
     var strokeCount = 0;
+    var firmaModificada = false;
+    var firmaEnProceso = false;
 
     function fillWhite(){
-      var ratio = window.devicePixelRatio || 1;
       var w = canvas.width;
       var h = canvas.height;
       ctx.save();
@@ -1866,28 +1976,31 @@
     function resize(){
       var ratio = window.devicePixelRatio || 1;
       var rect = canvas.getBoundingClientRect();
-      var prev = canvas.toDataURL('image/png');
-      var wasSigned = canvas.dataset.signed === 'true';
-      canvas.width = Math.max(1, Math.round(rect.width * ratio));
-      canvas.height = Math.max(1, Math.round(rect.height * ratio));
+      var width = Math.max(1, Math.round(rect.width * ratio));
+      var height = Math.max(1, Math.round(rect.height * ratio));
+      if(canvas.width === width && canvas.height === height) return;
+      var anterior;
+      if(canvas.dataset.signed === 'true'){
+        anterior = document.createElement('canvas');
+        anterior.width = canvas.width;
+        anterior.height = canvas.height;
+        anterior.getContext('2d').drawImage(canvas, 0, 0);
+      }
+      canvas.width = width;
+      canvas.height = height;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       fillWhite();
-      if(wasSigned && prev){
-        var img = new Image();
-        img.onload = function(){
-          ctx.drawImage(img, 0, 0, rect.width, rect.height);
-        };
-        img.src = prev;
-      }
+      if(anterior) ctx.drawImage(anterior, 0, 0, rect.width, rect.height);
     }
     window.addEventListener('resize', resize);
     resize();
 
-    function markSigned(){
+    function markSigned(fecha){
+      var fechaFirma = fecha || new Date();
       canvas.dataset.signed = 'true';
-      canvas.dataset.signedAt = new Date().toISOString();
+      canvas.dataset.signedAt = fechaFirma.toISOString();
       if(statusEl) statusEl.textContent = 'Firma capturada';
-      if(metaEl) metaEl.textContent = 'Firmado: ' + formatFechaHoraFirma();
+      if(metaEl) metaEl.textContent = 'Firmado: ' + formatFechaHoraFirma(fechaFirma);
       if(blockEl) blockEl.classList.add('is-signed');
     }
 
@@ -1909,6 +2022,7 @@
     }
     function start(e){
       drawing = true;
+      firmaEnProceso = false;
       last = pos(e);
       if(canvas.setPointerCapture && e.pointerId !== undefined){
         try{ canvas.setPointerCapture(e.pointerId); }catch(err){}
@@ -1922,13 +2036,18 @@
       ctx.moveTo(last.x, last.y);
       ctx.lineTo(p.x, p.y);
       ctx.stroke();
+      firmaModificada = true;
+      firmaEnProceso = true;
       strokeCount += 1;
       if(strokeCount > 2) markSigned();
       last = p;
       e.preventDefault();
     }
     function end(e){
+      if(!drawing) return;
       drawing = false;
+      if(firmaEnProceso && canvas.dataset.signed === 'true') solicitarGuardadoMedios();
+      firmaEnProceso = false;
       if(e) e.preventDefault();
     }
 
@@ -1950,10 +2069,37 @@
     var clearBtn = document.querySelector('[data-clear="'+canvasId+'"]');
     if(clearBtn){
       clearBtn.addEventListener('click', function(){
+        firmaModificada = true;
         fillWhite();
         markCleared();
+        solicitarGuardadoMedios();
       });
     }
+    canvas.addEventListener('mip:limpiar-firma', function(){
+      drawing = false;
+      firmaEnProceso = false;
+      firmaModificada = true;
+      markCleared();
+    });
+    restauradoresFirma[canvasId] = function(firma, ciclo){
+      return new Promise(function(resolve){
+        var imagen = new Image();
+        imagen.onerror = resolve;
+        imagen.onload = function(){
+          if(ciclo === cicloFormulario && !firmaModificada){
+            var rect = canvas.getBoundingClientRect();
+            ctx.drawImage(imagen, 0, 0, rect.width, rect.height);
+            var fecha = new Date(firma.fecha);
+            if(!isNaN(fecha.getTime())){
+              strokeCount = 3;
+              markSigned(fecha);
+            }
+          }
+          resolve();
+        };
+        imagen.src = firma.imagen;
+      });
+    };
     markCleared();
   }
   setupSignature('sigEj', 'sigStatusEj', 'sigMetaEj', 'sigBlockEj');
@@ -2109,6 +2255,7 @@
     var tbody = document.getElementById(tbodyId);
     var grouped = {};
     var order = [];
+    if(!tbody) return [];
     Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function(row){
       var select = row.querySelector('select.insumo-producto');
       var quantityInput = row.querySelector('input.insumo-dosis');
@@ -2170,8 +2317,9 @@
     var registros = [];
     var modoFicha = modoSeleccionado();
     var plagasFicha = modoFicha === 'ruta' ? valoresMarcados('grupoPlagasRuta') : [];
-    var permiteRoedores = modoFicha !== 'ruta' || plagasFicha.indexOf('Roedores') >= 0;
-    var permiteNoRoedores = modoFicha !== 'ruta' || plagasFicha.some(function(p){ return p !== 'Roedores'; }) || valoresMarcados('grupoServicio').indexOf('Control de termitas') >= 0;
+    var serviciosFicha = valoresMarcados('grupoServicio');
+    var permiteRoedores = modoFicha !== 'ruta' || plagasFicha.indexOf('Roedores') >= 0 || serviciosFicha.indexOf('Desratización') >= 0;
+    var permiteNoRoedores = modoFicha !== 'ruta' || plagasFicha.some(function(p){ return p !== 'Roedores'; }) || serviciosFicha.indexOf('Desinsectación') >= 0 || serviciosFicha.indexOf('Control de termitas') >= 0;
     if(grupoTieneMarca('grupoCondicionDispositivos') || valor('dispositivoObservacionGeneral')){
       agregarFicha(registros, 'Condición general de dispositivos', [
         ['Verificación',resumenGrupoSeleccionado('grupoCondicionDispositivos')],
@@ -2218,19 +2366,32 @@
       ]);
     }
     if(permiteRoedores && (grupoTieneMarca('grupoCondicionVector') || grupoTieneMarca('grupoOrigenVector') || grupoTieneMarca('grupoEspecieVector') || valor('drOtraEspecie') || valor('drEvidencia'))){
-      agregarFicha(registros, 'Actividad vectorial', [
+      agregarFicha(registros, 'Actividad vectorial – roedores', [
         ['Condición',resumenGrupoSeleccionado('grupoCondicionVector')],['Origen',resumenGrupoSeleccionado('grupoOrigenVector')],
         ['Especies',resumenGrupoSeleccionado('grupoEspecieVector')],['Otra especie',valorOperativo('drOtraEspecie')],
         ['Evidencia',valorOperativo('drEvidencia')]
       ]);
     }
 
-    var desinIds = ['desArea','desObs'];
-    if(permiteNoRoedores && (hayValorOperativo(desinIds) || grupoTieneMarca('grupoMetodoDesin'))){
+    if(permiteRoedores) registros = registros.concat(resumirInsumos('tablaDesrat', 'Desratización · Producto'));
+
+    if(permiteNoRoedores){
       agregarFicha(registros, 'Desinsectación', [
         ['Métodos',resumenGrupoSeleccionado('grupoMetodoDesin')],['Área tratada',valorOperativo('desArea')],
-        ['Observaciones',valorOperativo('desObs')]
+        ['Observaciones técnicas',valorOperativo('desObs')]
       ]);
+      var especiesInsectos = valoresMarcados('grupoEspecieInsectos');
+      var otraEspecie = especiesInsectos.indexOf('Otra especie');
+      if(otraEspecie >= 0 && valor('desOtraEspecie')) especiesInsectos[otraEspecie] = valor('desOtraEspecie');
+      agregarFicha(registros, 'Actividad vectorial – insectos', [
+        ['Condición de la actividad',resumenGrupoSeleccionado('grupoCondicionInsectos')],
+        ['Origen de la infestación',resumenGrupoSeleccionado('grupoOrigenInsectos')],
+        ['Especies identificadas',especiesInsectos.join(', ')],
+        ['Evidencia observada',resumenGrupoSeleccionado('grupoEvidenciaInsectos')],
+        ['Observaciones de actividad vectorial',valor('desActividadObs')]
+      ]);
+      var categoriaProducto = modoFicha === 'ruta' ? 'Desinsectación / termitas · Producto' : 'Desinsectación · Producto';
+      registros = registros.concat(resumirInsumos('tablaDesin', categoriaProducto));
     }
 
     var uvIds = ['uvTotal','uvBuenos','uvRefill','uvDanados','uvApagados','uvInsecto','uvObs'];
@@ -2244,14 +2405,11 @@
       ]);
     }
 
-    var sanIds = ['sanArea','sanObs'];
-    if(hayValorOperativo(sanIds)){
-      agregarFicha(registros, 'Sanitización', [
-        ['Área tratada',valorOperativo('sanArea')],
-        ['Observaciones',valorOperativo('sanObs')]
-      ]);
-    }
-    return registros;
+    agregarFicha(registros, 'Sanitización', [
+      ['Área tratada',valorOperativo('sanArea')],
+      ['Observaciones',valorOperativo('sanObs')]
+    ]);
+    return registros.concat(resumirInsumos('tablaSan', 'Sanitización · Producto'));
   }
 
   function obtenerFirma(canvasId, titulo, nombre, detalle){
@@ -2277,19 +2435,28 @@
     };
   }
 
+  function imagenParaInforme(imagen){
+    if(/^data:image\/(?:jpeg|png);base64,/i.test(imagen.src)) return imagen.src;
+    var canvas = document.createElement('canvas');
+    var escala = Math.min(1, 1280 / Math.max(imagen.naturalWidth, imagen.naturalHeight));
+    canvas.width = Math.max(1, Math.round(imagen.naturalWidth * escala));
+    canvas.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
+    canvas.getContext('2d').drawImage(imagen, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.8);
+  }
+
   function recopilarResumen(){
     var modo = modoSeleccionado();
     var tiposCliente = modo === 'ruta' ? valoresMarcados('grupoTipoCliente') : [];
-    var clasificaciones = valoresMarcados('grupoClasificacion');
     var instalaciones = valoresMarcados('grupoInstalacion');
     var periodicidad = valoresMarcados('grupoPeriodicidad');
     var servicios = valoresMarcados('grupoServicio');
     var servicioOtro = valor('servicioOtroDetalle');
-    var serviciosPdf = servicios.filter(function(item){ return item !== 'Otro'; });
-    if(servicios.indexOf('Otro') >= 0 && servicioOtro) serviciosPdf.push(servicioOtro);
+    var serviciosInforme = servicios.map(function(item){
+      return item === 'Otro' && servicioOtro ? servicioOtro : item;
+    }).filter(function(item, index, todos){ return todos.indexOf(item) === index; });
     var plagasRuta = modo === 'ruta' ? plagasRutaSeleccionadasParaPdf() : [];
     var controles = valoresMarcados('grupoControl');
-    var evaluaciones = modo === 'metro' ? valoresMarcados('grupoEvaluacion') : [];
     var recomendaciones = valoresMarcados('grupoRecomendaciones');
     var estado = resumirChecklist('tablaEstado', 'estado');
     var otrosControles = valor('controlOtro');
@@ -2312,7 +2479,6 @@
       ['Modalidad', modo === 'ruta' ? 'Servicio en Ruta' : 'Metro'],
       ['N° certificado', valor('numCertificado')],
       ['N° de Facturación', modo === 'ruta' ? valor('numFactura') : ''],
-      ['Clasificación del servicio', clasificaciones.join(', ')],
       ['Fecha', fechaLegible(valor('fecha'))],
       [modo === 'ruta' ? 'OT / Solicitud' : 'Avería', valor('averiaN')],
       [modo === 'ruta' ? 'Coordinadora' : 'Coordinador/a', modo === 'ruta' ? valor('coordinadoraRuta') : valor('coordinador')],
@@ -2336,27 +2502,15 @@
       [modo === 'ruta' ? 'Instalación / sucursal' : 'Instalación', instalacion],
       ['Sector / área intervenida', valor('sectorIntervenido')],
       [modo === 'ruta' ? 'Hora de inicio' : 'Horario', horario],
+      ['Tipo de servicio / intervención', serviciosInforme.join(', ')],
       ['Periodicidad', periodicidad.join(', ')],
-      ['Servicio', serviciosPdf.join(', ')],
       ['Plaga(s) objetivo', modo === 'ruta' ? plagasRuta.join(', ') : ''],
       ['Observación o lugar', instalaciones.indexOf('Otros') >= 0 ? valor('instalacionOtraObservacion') : '']
     ].filter(function(entry){ return !!entry[1]; }).map(function(entry){
       return [entry[0], limitarTexto(entry[1], 260)];
     });
 
-    var hallazgos = [];
-    if(evaluaciones.length) hallazgos.push('Evaluación técnica: ' + evaluaciones.join(', '));
-    if(modo === 'metro' && valor('especie')) hallazgos.push('Especie observada: ' + valor('especie'));
-    estado.items.forEach(function(item){ hallazgos.push(item); });
-    hallazgos = hallazgos.map(function(item){ return limitarTexto(item, 420); });
-
-    var acciones = [];
-    var plagasRawRuta = modo === 'ruta' ? valoresMarcados('grupoPlagasRuta') : [];
-    var permiteProductoRoedor = modo !== 'ruta' || plagasRawRuta.indexOf('Roedores') >= 0;
-    var permiteProductoNoRoedor = modo !== 'ruta' || plagasRawRuta.some(function(p){ return p !== 'Roedores'; }) || servicios.indexOf('Sanitización') >= 0 || servicios.indexOf('Control de termitas') >= 0 || servicios.indexOf('Desinsectación') >= 0;
-    if(permiteProductoRoedor) acciones = acciones.concat(resumirInsumos('tablaDesrat', 'Desratización'));
-    if(permiteProductoNoRoedor) acciones = acciones.concat(resumirInsumos('tablaDesin', modo === 'ruta' ? 'Desinsectación / sanitización / termitas' : 'Desinsectación / sanitización'));
-    acciones = acciones.map(function(item){ return limitarTexto(item, 700); }).filter(function(item){ return !!item; });
+    var hallazgos = estado.items;
 
     var firmas = [
       obtenerFirma('sigEj', 'Firma del técnico', valor('nombreTecnico') || 'Técnico', valor('ejCargo')),
@@ -2364,14 +2518,13 @@
     ];
     var recomendacionText = recomendaciones.slice();
     if(otraRecomendacion) recomendacionText.push(otraRecomendacion);
-    var observacionesTexto = limitarTexto(valor('observaciones'), 1200);
+    var observacionesTexto = valor('observaciones');
     var fichaOperativa = recopilarFichaOperativa();
     if(modo === 'ruta' && plagasRuta.length) fichaOperativa.unshift('Plaga(s) sinantrópica(s) objetivo: ' + plagasRuta.join(', '));
     if(otrosControles) fichaOperativa.unshift('Otra acción ejecutada: ' + otrosControles);
     if(controles.length) fichaOperativa.unshift('Acciones ejecutadas: ' + controles.join(', '));
     // Recomendaciones como lista limpia: el titular del PDF ya identifica la sección.
     var cierre = recomendacionText
-      .map(function(item){ return limitarTexto(item, 700); })
       .filter(function(item){ return !!item; });
 
     // Síntesis técnica institucional para el informe final.
@@ -2388,7 +2541,6 @@
       observaciones: observacionesTexto,
       hallazgos: hallazgos,
       fichaOperativa: fichaOperativa,
-      acciones: acciones,
       cierre: cierre,
       firmas: firmas,
       fotos: (function(){
@@ -2397,24 +2549,60 @@
           var img = card.querySelector('img');
           var caption = card.querySelector('.img-caption');
           if(!img || !img.src || img.naturalWidth <= 8 || img.naturalHeight <= 8) return null;
-          return { image: img, caption: caption ? caption.value.trim() : '', numero: idx + 1 };
+          return { image: img, dataUrl: imagenParaInforme(img), caption: caption ? caption.value.replace(/\s+/g, ' ').trim() : '', numero: idx + 1 };
         }).filter(function(item){ return !!item; });
-        return valid.slice(0, 12);
+        return valid;
       })(),
-      totalFotos: document.querySelectorAll('#imgGrid .img-thumb').length,
       numCertificado: valor('numCertificado'),
       numFacturacion: modo === 'ruta' ? valor('numFactura') : ''
     };
   }
 
-  // ---------- descarga de PDF robusta y alternativa nativa ----------
-  var lastPdfUrl = '';
-  var pdfLibraries = [
-    {
-      ready: function(){ return window.jspdf && typeof window.jspdf.jsPDF === 'function'; },
-      urls: []
+  // ---------- descarga de archivos y alternativa nativa ----------
+  function esDispositivoIOS(){
+    return /iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function entregarArchivo(blob, nombre, status, aviso){
+    aviso = aviso ? ' · ' + aviso : '';
+    function descargar(){
+      var url = URL.createObjectURL(blob);
+      var enlace = document.createElement('a');
+      enlace.href = url;
+      enlace.download = nombre;
+      enlace.rel = 'noopener';
+      enlace.target = '_blank';
+      enlace.hidden = true;
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+      // Safari puede empezar a leer el Blob después de abrir el gestor de descargas.
+      window.setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+      status.textContent = 'Archivo preparado · ' + nombre + aviso;
     }
-  ];
+
+    var esMovil = esDispositivoIOS() || /Android/.test(navigator.userAgent || '');
+    if(esMovil && typeof File === 'function' && typeof navigator.share === 'function'){
+      try{
+        var archivo = new File([blob], nombre, {type:blob.type, lastModified:Date.now()});
+        var datosCompartir = {files:[archivo]};
+        if(!navigator.canShare || navigator.canShare(datosCompartir)){
+          navigator.share(datosCompartir).then(function(){
+            status.textContent = 'Archivo compartido · ' + nombre + aviso;
+          }).catch(function(error){
+            if(error && error.name === 'AbortError'){
+              status.textContent = 'Se canceló la acción de compartir. Puedes volver a pulsar Descargar.';
+            }else{
+              descargar();
+            }
+          });
+          return;
+        }
+      }catch(error){ /* Continuar con la descarga del archivo. */ }
+    }
+    descargar();
+  }
 
   function slugArchivo(texto, maxLen){
     var t = String(texto || '');
@@ -2471,6 +2659,11 @@
       }
     }
 
+    if(preparandoFoto || colaFotos.length){
+      status.textContent = 'Espera a que se procesen las fotografías antes de generar el ' + etiqueta + '.';
+      return false;
+    }
+
     var fotosSinResena = Array.prototype.filter.call(
       document.querySelectorAll('#imgGrid .img-thumb'),
       function(card){
@@ -2478,6 +2671,15 @@
         return !caption || !caption.value.trim();
       }
     );
+
+    var fotosSinCargar = Array.prototype.some.call(document.querySelectorAll('#imgGrid .img-thumb img'), function(img){
+      return !img.complete || img.naturalWidth <= 8 || img.naturalHeight <= 8;
+    });
+    if(fotosSinCargar){
+      status.textContent = 'Espera a que carguen las fotografías. Si una no se puede mostrar, vuelve a adjuntarla.';
+      scrollSeguro(document.getElementById('imgGrid'));
+      return false;
+    }
 
     if(fotosSinResena.length){
       status.textContent = 'Agrega una reseña/ubicación a cada fotografía antes de generar el ' + etiqueta + '.';
@@ -2497,6 +2699,7 @@
   // No se renombra HTML como .doc. Se crea un paquete OOXML .docx real.
   function docxEsc(texto){
     return String(texto == null ? '' : texto)
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]/g, '')
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/"/g,'&quot;').replace(/'/g,'&apos;');
   }
@@ -2507,8 +2710,10 @@
     if(opciones.bold) rPr += '<w:b/>';
     if(opciones.color) rPr += '<w:color w:val="' + docxEsc(opciones.color) + '"/>';
     if(opciones.size) rPr += '<w:sz w:val="' + Math.round(opciones.size * 2) + '"/><w:szCs w:val="' + Math.round(opciones.size * 2) + '"/>';
-    return '<w:r>' + (rPr ? '<w:rPr>' + rPr + '</w:rPr>' : '') +
-      '<w:t xml:space="preserve">' + docxEsc(texto) + '</w:t></w:r>';
+    var contenido = String(texto == null ? '' : texto).split(/\r\n?|\n/).map(function(linea){
+      return '<w:t xml:space="preserve">' + docxEsc(linea) + '</w:t>';
+    }).join('<w:br/>');
+    return '<w:r>' + (rPr ? '<w:rPr>' + rPr + '</w:rPr>' : '') + contenido + '</w:r>';
   }
 
   function docxP(texto, opciones){
@@ -2546,7 +2751,7 @@
       '<w:right w:val="single" w:sz="4" w:color="D9D3C3"/>' +
       '<w:insideH w:val="single" w:sz="3" w:color="E7E3DA"/>' +
       '<w:insideV w:val="single" w:sz="3" w:color="E7E3DA"/></w:tblBorders></w:tblPr>' +
-      rows + '</w:tbl>';
+      '<w:tblGrid><w:gridCol w:w="2500"/><w:gridCol w:w="6500"/></w:tblGrid>' + rows + '</w:tbl>';
   }
 
   function dataUrlABinario(dataUrl){
@@ -2638,8 +2843,9 @@
     });
   }
 
-  function docxImagen(relId, id, nombre, cx, cy){
-    return '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing>' +
+  function docxImagen(relId, id, nombre, cx, cy, mantenerConSiguiente){
+    return '<w:p><w:pPr>' + (mantenerConSiguiente ? '<w:keepNext/>' : '') +
+      '<w:spacing w:after="0"/><w:jc w:val="center"/></w:pPr><w:r><w:drawing>' +
       '<wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" distT="0" distB="0" distL="0" distR="0">' +
       '<wp:extent cx="' + cx + '" cy="' + cy + '"/>' +
       '<wp:docPr id="' + id + '" name="' + docxEsc(nombre) + '"/>' +
@@ -2654,8 +2860,28 @@
       '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
   }
 
-  function nombreArchivoDocx(){
-    return nombreArchivo().replace(/\.pdf$/i,'.docx');
+  function docxFilaCorporativa(celdas, anchos){
+    return '<w:tbl><w:tblPr><w:tblW w:w="10460" w:type="dxa"/><w:tblLayout w:type="fixed"/></w:tblPr>' +
+      '<w:tblGrid>' + anchos.map(function(ancho){ return '<w:gridCol w:w="' + ancho + '"/>'; }).join('') + '</w:tblGrid><w:tr>' +
+      celdas.map(function(celda, i){
+        return '<w:tc><w:tcPr><w:tcW w:w="' + anchos[i] + '" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>' + celda + '</w:tc>';
+      }).join('') + '</w:tr></w:tbl><w:p/>';
+  }
+
+  function docxRelacion(id, tipo, destino){
+    return '<Relationship Id="' + id + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/' + tipo + '" Target="' + destino + '"/>';
+  }
+
+  function docxRelaciones(relaciones){
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + relaciones.join('') + '</Relationships>';
+  }
+
+  function dimensionesFotoDocx(foto){
+    var maxWidth = 5000000;
+    var maxHeight = 3300000;
+    var scale = Math.min(maxWidth / foto.naturalWidth, maxHeight / foto.naturalHeight);
+    return [Math.round(foto.naturalWidth * scale), Math.round(foto.naturalHeight * scale)];
   }
 
   function generarDocxReal(){
@@ -2666,22 +2892,39 @@
       var datos = recopilarResumen();
       var body = [];
       var media = [];
-      var rels = [];
+      var rels = [docxRelacion('rId1', 'styles', 'styles.xml'),
+        docxRelacion('rId2', 'header', 'header1.xml'), docxRelacion('rId3', 'footer', 'footer1.xml')];
+      var relsEncabezado = [];
+      var relsPie = [];
       var relCounter = 5;
       var imageCounter = 1;
 
-      function agregarImagenData(dataUrl, nombre, cx, cy){
+      function agregarImagenData(dataUrl, nombre, cx, cy, relaciones, mantenerConSiguiente){
         var bin = dataUrlABinario(dataUrl);
         if(!bin) return '';
         var relId = 'rId' + (relCounter++);
         var fileName = 'image' + (media.length + 1) + '.' + bin.ext;
         media.push({name:'word/media/' + fileName, data:bin.bytes, ext:bin.ext});
-        rels.push('<Relationship Id="' + relId + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/' + fileName + '"/>');
-        return docxImagen(relId, imageCounter++, nombre, cx, cy);
+        (relaciones || rels).push(docxRelacion(relId, 'image', 'media/' + fileName));
+        return docxImagen(relId, imageCounter++, nombre, cx, cy, mantenerConSiguiente);
       }
 
-      body.push(docxP('TECNOAMBIENTE SPA', {bold:true, size:16, color:'2F5233', align:'center', spacingAfter:60}));
-      body.push(docxP(datos.modo === 'ruta' ? 'CERTIFICADO DE SERVICIO MIP' : 'INFORME TÉCNICO MIP', {bold:true,size:14,align:'center',spacingAfter:80}));
+      var espaciosWord = ' xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+      var xmlWord = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+      var logo = document.querySelector('.brand-logo');
+      var titulo = datos.modo === 'ruta' ? 'CERTIFICADO DE SERVICIO MIP' : 'INFORME TÉCNICO MIP';
+      var estiloEncabezado = {size:8,align:'center',spacingAfter:0};
+      var encabezadoDocx = xmlWord + '<w:hdr' + espaciosWord + '>' + docxFilaCorporativa([
+        agregarImagenData(logo.src, 'Logo Tecnoambiente', 1600000, 605000, relsEncabezado),
+        docxP('Servicio de Manejo Integrado y Control de Plagas Urbanas', estiloEncabezado) +
+          docxP(titulo, {bold:true,size:11,color:'2F5233',align:'center',spacingAfter:0}),
+        agregarImagenData(ISO_BADGE_PDF_DATA, 'ISO 9001 SGS', 440000, 420000, relsEncabezado),
+        docxP('Código: ' + etiquetaCodigoFormato() + '\nFecha: ' + CONTROL_DOCUMENTAL.fechaRevision + '\n' + etiquetaRevision(), estiloEncabezado)
+      ], [2700,4700,1050,2010]) + '</w:hdr>';
+      var pieDocx = xmlWord + '<w:ftr' + espaciosWord + '>' + docxFilaCorporativa([
+        docxP('Dpto. Técnico - Operaciones | SGC Tecnoambiente SPA | Vigente según SGC ISO 9001:2015.\nwww.tecnoambiente.cl', {size:7.5,color:'54625A',spacingAfter:0}),
+        agregarImagenData(FOOTER_ASSOC_LOGOS_DATA, 'ACHICPLA y National Pest Management Association', 1650000, 309000, relsPie)
+      ], [7750,2710]) + '</w:ftr>';
       if(datos.numCertificado) body.push(docxP('N° CERTIFICADO: ' + datos.numCertificado, {bold:true,size:10,align:'center',spacingAfter:140}));
 
       var sec = 1;
@@ -2692,10 +2935,14 @@
 
       seccion('IDENTIFICACIÓN DEL SERVICIO');
       body.push(docxTablaPares(datos.identificacionServicio || []));
-      seccion('DATOS DEL CLIENTE');
-      body.push(docxTablaPares(datos.datosClienteOrganizados || []));
-      seccion('EJECUCIÓN DEL SERVICIO');
-      body.push(docxTablaPares(datos.ejecucionServicio || []));
+      if(datos.datosClienteOrganizados.length){
+        seccion('DATOS DEL CLIENTE');
+        body.push(docxTablaPares(datos.datosClienteOrganizados));
+      }
+      if(datos.ejecucionServicio.length){
+        seccion('EJECUCIÓN DEL SERVICIO');
+        body.push(docxTablaPares(datos.ejecucionServicio));
+      }
 
       if(datos.modo !== 'ruta' && datos.narrativa){
         seccion('ALCANCE GENERAL DEL SERVICIO');
@@ -2706,16 +2953,12 @@
         body.push(docxP(datos.observaciones,{size:9,spacingAfter:100}));
       }
       if(datos.hallazgos && datos.hallazgos.length){
-        seccion(datos.modo === 'ruta' ? 'HALLAZGOS Y ESTADO DE CONTROL' : 'EVALUACIÓN Y HALLAZGOS');
+        seccion(datos.modo === 'ruta' ? 'HALLAZGOS Y ESTADO DE CONTROL' : 'CHECK LIST · INSPECCIÓN Y CONDICIONES');
         lista(datos.hallazgos);
       }
       if(datos.fichaOperativa && datos.fichaOperativa.length){
         seccion(datos.modo === 'ruta' ? 'CONTROL DE PLAGAS EJECUTADO' : 'CONTROL OPERATIVO Y DISPOSITIVOS');
         lista(datos.fichaOperativa);
-      }
-      if(datos.acciones && datos.acciones.length){
-        seccion('PRODUCTOS E INSUMOS APLICADOS');
-        lista(datos.acciones);
       }
       if(datos.cierre && datos.cierre.length){
         seccion('RECOMENDACIONES');
@@ -2724,29 +2967,27 @@
 
       if(datos.fotos && datos.fotos.length){
         seccion('REGISTRO FOTOGRÁFICO');
-        datos.fotos.forEach(function(foto, idx){
-          var src = foto.image && foto.image.src ? foto.image.src : '';
-          var imgXml = agregarImagenData(src, 'Fotografía ' + (idx+1), 5000000, 3300000);
-          if(imgXml) body.push(imgXml);
-          body.push(docxP('Fotografía ' + (idx+1) + (foto.caption ? ' - ' + foto.caption : ''), {size:8,align:'center',spacingAfter:120}));
+        datos.fotos.forEach(function(foto){
+          var dimensiones = dimensionesFotoDocx(foto.image);
+          var etiqueta = 'Fotografía ' + foto.numero;
+          body.push(agregarImagenData(foto.dataUrl, etiqueta, dimensiones[0], dimensiones[1], rels, true));
+          body.push(docxP(etiqueta + (foto.caption ? ' - ' + foto.caption : ''), {size:8,align:'center',spacingAfter:120}));
         });
       }
 
       seccion('RECEPCIÓN DEL SERVICIO MIP');
       (datos.firmas || []).forEach(function(firma, idx){
-        body.push(docxP(firma.titulo || 'Firma', {bold:true,size:9,align:'center',spacingAfter:40}));
+        body.push(docxP(firma.titulo || 'Firma', {bold:true,size:9,align:'center',keepNext:true,spacingAfter:40}));
         if(firma.firmada && firma.dataUrl){
-          body.push(agregarImagenData(firma.dataUrl, firma.titulo || ('Firma ' + (idx+1)), 2500000, 900000));
+          body.push(agregarImagenData(firma.dataUrl, firma.titulo || ('Firma ' + (idx+1)), 2500000, 900000, rels, true));
         }
         body.push(docxP((firma.nombre || '') + (firma.detalle ? ' - ' + firma.detalle : ''), {size:8.5,align:'center',spacingAfter:120}));
       });
 
       var rt = document.getElementById('rtSignaturePreview');
-      body.push(docxP('RESPONSABLE TÉCNICO', {bold:true,size:9,color:'2F5233',align:'center',spacingAfter:40}));
-      if(rt && rt.src) body.push(agregarImagenData(rt.src, 'Firma Responsable Técnico', 2800000, 1100000));
+      body.push(docxP('RESPONSABLE TÉCNICO', {bold:true,size:9,color:'2F5233',align:'center',keepNext:true,spacingAfter:40}));
+      if(rt && rt.src) body.push(agregarImagenData(rt.src, 'Firma Responsable Técnico', 2800000, 1100000, rels, true));
       body.push(docxP(typeof RESPONSABLE_TECNICO !== 'undefined' ? RESPONSABLE_TECNICO : 'Saúl Farías Molina', {bold:true,size:9,align:'center',spacingAfter:120}));
-
-      body.push(docxP('Dpto. Técnico - Operaciones | SGC Tecnoambiente SPA | Vigente según SGC ISO 9001:2015 | www.tecnoambiente.cl', {size:7.5,color:'54625A',align:'center'}));
 
       var documentXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
         '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" ' +
@@ -2755,7 +2996,8 @@
         'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" ' +
         'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
         '<w:body>' + body.join('') +
-        '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="360" w:footer="360" w:gutter="0"/></w:sectPr>' +
+        '<w:sectPr><w:headerReference w:type="default" r:id="rId2"/><w:footerReference w:type="default" r:id="rId3"/>' +
+        '<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1780" w:right="720" w:bottom="1400" w:left="720" w:header="360" w:footer="360" w:gutter="0"/></w:sectPr>' +
         '</w:body></w:document>';
 
       var stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
@@ -2763,11 +3005,6 @@
         '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="18"/></w:rPr></w:style>' +
         '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:rPr><w:b/><w:color w:val="2F5233"/><w:sz w:val="22"/></w:rPr></w:style>' +
         '</w:styles>';
-
-      var documentRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
-        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
-        rels.join('') + '</Relationships>';
 
       var contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
         '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
@@ -2777,6 +3014,8 @@
         '<Default Extension="jpg" ContentType="image/jpeg"/>' +
         '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
         '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
+        '<Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>' +
+        '<Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/>' +
         '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
         '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>' +
         '</Types>';
@@ -2810,75 +3049,18 @@
         {name:'docProps/app.xml',data:appXml},
         {name:'word/document.xml',data:documentXml},
         {name:'word/styles.xml',data:stylesXml},
-        {name:'word/_rels/document.xml.rels',data:documentRels}
+        {name:'word/header1.xml',data:encabezadoDocx},
+        {name:'word/footer1.xml',data:pieDocx},
+        {name:'word/_rels/document.xml.rels',data:docxRelaciones(rels)},
+        {name:'word/_rels/header1.xml.rels',data:docxRelaciones(relsEncabezado)},
+        {name:'word/_rels/footer1.xml.rels',data:docxRelaciones(relsPie)}
       ].concat(media);
 
       var blob = crearZipSinCompresion(entradas);
-      var nombre = nombreArchivoDocx();
-      var mimeDocx = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-      function descargaDocxFallback(){
-        var url = URL.createObjectURL(blob);
-
-        if(isIOS){
-          // Safari, Chrome, Edge y Firefox en iPhone pueden ignorar el atributo download.
-          // Abrir el Blob permite que iOS use Quick Look/Compartir/Guardar en Archivos.
-          var nueva = null;
-          try{ nueva = window.open(url, '_blank'); }catch(e0){}
-          if(!nueva){
-            try{ window.location.href = url; }catch(e1){}
-          }
-          setTimeout(function(){
-            try{ URL.revokeObjectURL(url); }catch(e2){}
-          }, 30000);
-          status.textContent = 'DOCX preparado para iPhone · usa Compartir → Guardar en Archivos.';
-          return;
-        }
-
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = nombre;
-        a.rel = 'noopener';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        try{ a.click(); }catch(e3){}
-        setTimeout(function(){
-          try{ URL.revokeObjectURL(url); }catch(e4){}
-          if(a.parentNode) a.parentNode.removeChild(a);
-        }, 2500);
-        status.textContent = 'DOCX real y editable descargado · ' + nombre;
-      }
-
-      if(blob.size > 8 * 1024 * 1024){
-        status.textContent = 'Aviso SAP: el DOCX supera 8 MB. Reduce fotografías si KPro limita el tamaño.';
-      }
-
-      if(isIOS && typeof File === 'function' && navigator.share){
-        try{
-          var archivoDocx = new File([blob], nombre, {type:mimeDocx, lastModified:Date.now()});
-          var compartible = !navigator.canShare || navigator.canShare({files:[archivoDocx]});
-          if(compartible){
-            status.textContent = 'Preparando DOCX para compartir en iOS…';
-            navigator.share({files:[archivoDocx], title:nombre})
-              .then(function(){ status.textContent = 'DOCX enviado a la hoja Compartir de iOS · ' + nombre; })
-              .catch(function(err){
-                if(err && err.name === 'AbortError'){
-                  status.textContent = 'Compartir cancelado. Puedes volver a pulsar Descargar DOCX.';
-                }else{
-                  descargaDocxFallback();
-                }
-              });
-          }else{
-            descargaDocxFallback();
-          }
-        }catch(shareErr){
-          descargaDocxFallback();
-        }
-      }else{
-        descargaDocxFallback();
-      }
+      var aviso = blob.size > 8 * 1024 * 1024
+        ? 'El DOCX supera 8 MB. Reduce fotografías si KPro limita el tamaño.'
+        : '';
+      entregarArchivo(blob, nombreArchivoDocumento(), status, aviso);
     }catch(err){
       console.error('Error DOCX:', err);
       status.textContent = 'No fue posible generar el DOCX real. Reintenta o usa el PDF.';
@@ -2895,57 +3077,30 @@
     document.title = nombreArchivo().replace(/\.pdf$/i,'');
   }
 
-  function cargarDesdeAlternativas(library, urlIndex, onReady, onError){
-    if(library.ready()){
-      onReady();
-      return;
-    }
-    if(urlIndex >= library.urls.length){
-      onError();
-      return;
-    }
+  var cargaBibliotecaPdf;
 
-    var script = document.createElement('script');
-    var finished = false;
-    var timer = window.setTimeout(function(){ finish(false); }, 9000);
-
-    function finish(ok){
-      if(finished) return;
-      finished = true;
-      window.clearTimeout(timer);
-      script.onload = null;
-      script.onerror = null;
-      if(ok && library.ready()){
-        onReady();
-      }else{
-        if(script.parentNode) script.parentNode.removeChild(script);
-        cargarDesdeAlternativas(library, urlIndex + 1, onReady, onError);
-      }
-    }
-
-    script.async = true;
-    script.src = library.urls[urlIndex];
-    script.onload = function(){ finish(true); };
-    script.onerror = function(){ finish(false); };
-    document.head.appendChild(script);
+  function bibliotecaPdfDisponible(){
+    return window.jspdf && typeof window.jspdf.jsPDF === 'function';
   }
 
-  function cargarLibreriasPdf(onReady, onError){
-    if(typeof window.Promise !== 'function'){
-      onError();
-      return;
+  function prepararBibliotecaPdf(){
+    if(!cargaBibliotecaPdf){
+      cargaBibliotecaPdf = new Promise(function(resolve){
+        var script = document.createElement('script');
+        script.src = './vendor/jspdf.umd.min.js';
+        var espera = window.setTimeout(function(){ resolve(false); }, 6000);
+        script.onload = function(){
+          window.clearTimeout(espera);
+          resolve(!!bibliotecaPdfDisponible());
+        };
+        script.onerror = function(){
+          window.clearTimeout(espera);
+          resolve(false);
+        };
+        document.head.appendChild(script);
+      });
     }
-
-    function siguiente(index){
-      if(index >= pdfLibraries.length){
-        onReady();
-        return;
-      }
-      cargarDesdeAlternativas(pdfLibraries[index], 0, function(){
-        siguiente(index + 1);
-      }, onError);
-    }
-    siguiente(0);
+    return cargaBibliotecaPdf;
   }
 
   function prepararInformeImpresion(){
@@ -3032,17 +3187,22 @@
     var identificacionColumn = elemento('div', undefined, 'print-info-column');
     identificacionColumn.appendChild(elemento('h2', '1. Identificación del servicio'));
     agregarDefiniciones(identificacionColumn, datos.identificacionServicio || []);
-    var clienteColumn = elemento('div', undefined, 'print-info-column');
-    clienteColumn.appendChild(elemento('h2', '2. Datos del cliente'));
-    agregarDefiniciones(clienteColumn, datos.datosClienteOrganizados || []);
     dualInfoSection.appendChild(identificacionColumn);
-    dualInfoSection.appendChild(clienteColumn);
+    numeroSeccion = 1;
+    if(datos.datosClienteOrganizados.length){
+      var clienteColumn = elemento('div', undefined, 'print-info-column');
+      clienteColumn.appendChild(elemento('h2', '2. Datos del cliente'));
+      agregarDefiniciones(clienteColumn, datos.datosClienteOrganizados);
+      dualInfoSection.appendChild(clienteColumn);
+      numeroSeccion += 1;
+    }
     article.appendChild(dualInfoSection);
-    numeroSeccion = 2;
 
-    var ejecucionSection = seccionNumerada('Ejecución del servicio');
-    ejecucionSection.classList.add('print-info-block', 'print-execution-two-column');
-    agregarDefiniciones(ejecucionSection, datos.ejecucionServicio || []);
+    if(datos.ejecucionServicio.length){
+      var ejecucionSection = seccionNumerada('Ejecución del servicio');
+      ejecucionSection.classList.add('print-info-block', 'print-execution-two-column');
+      agregarDefiniciones(ejecucionSection, datos.ejecucionServicio);
+    }
 
     if(datos.modo !== 'ruta'){
       var sintesis = seccionNumerada('Síntesis de la intervención');
@@ -3058,23 +3218,20 @@
       obsSec.appendChild(obsP);
     }
     if(datos.hallazgos.length){
-      var evalSection = seccionNumerada(datos.modo === 'ruta' ? 'Hallazgos y estado de control' : 'Evaluación y hallazgos');
-      var evalGrid = elemento('div', undefined, 'print-report-evaluation');
+      var checklistSection = seccionNumerada(datos.modo === 'ruta' ? 'Hallazgos y estado de control' : 'Check list · Inspección y condiciones');
+      var checklistGrid = elemento('div', undefined, 'print-report-evaluation');
       var splitAt = Math.ceil(datos.hallazgos.length / 2);
       [datos.hallazgos.slice(0, splitAt), datos.hallazgos.slice(splitAt)].forEach(function(values){
         var list = document.createElement('ul');
         values.forEach(function(value){ list.appendChild(elemento('li', value)); });
-        evalGrid.appendChild(list);
+        checklistGrid.appendChild(list);
       });
-      evalSection.appendChild(evalGrid);
+      checklistSection.appendChild(checklistGrid);
     }
     if(datos.fichaOperativa.length){
       var fichaSection = seccionNumerada(datos.modo === 'ruta' ? 'Control de plagas ejecutado' : 'Control operativo y dispositivos');
       fichaSection.className = 'print-report-operational';
       agregarLista(fichaSection, datos.fichaOperativa);
-    }
-    if(datos.acciones.length){
-      agregarLista(seccionNumerada('Productos e insumos aplicados'), datos.acciones);
     }
 
     if(datos.cierre.length){
@@ -3084,17 +3241,15 @@
 
     if(datos.fotos.length){
       var photosSection = seccionNumerada('Registro fotográfico');
+      photosSection.classList.add('print-report-operational');
       var photos = elemento('div', undefined, 'print-report-photos');
-      datos.fotos.forEach(function(foto, index){
+      datos.fotos.forEach(function(foto){
         var card = elemento('figure', undefined, 'print-photo-card');
         card.appendChild(foto.image.cloneNode(false));
-        card.appendChild(elemento('figcaption', 'Foto ' + (index + 1) + ' · ' + (foto.caption || 'Sin reseña registrada')));
+        card.appendChild(elemento('figcaption', 'Foto ' + foto.numero + (foto.caption ? ' · ' + foto.caption : '')));
         photos.appendChild(card);
       });
       photosSection.appendChild(photos);
-      if(datos.totalFotos > datos.fotos.length){
-        photosSection.appendChild(elemento('p', 'Se registraron ' + datos.totalFotos + ' fotografías; se muestran las primeras ' + datos.fotos.length + '.'));
-      }
     }
 
 var firmasSection = seccionNumerada('Recepción del servicio MIP');
@@ -3165,7 +3320,7 @@ firmasSection.appendChild(firmasGrid);
       var datos = recopilarResumen();
       var jsPDF = window.jspdf.jsPDF;
       var pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4', compress:true});
-      var state = {page:1, maxPages:5, y:36, bottom:278, truncated:false};
+      var state = {y:36, bottom:277};
       var left = 14;
       var width = 182;
 
@@ -3292,50 +3447,15 @@ firmasSection.appendChild(firmasGrid);
         );
       }
 
-      function nuevaPagina(){
-        if(state.page >= state.maxPages){
-          state.truncated = true;
-          return false;
-        }
-        pdf.addPage();
-        state.page += 1;
-        encabezado(false);
-        return true;
-      }
-
       function asegurarEspacio(height){
-        var contentBottom = state.page === state.maxPages ? 235 : state.bottom;
-        if(state.y + height <= contentBottom) return true;
-        return nuevaPagina();
-      }
-
-      function escribirFacturacionDestacada(numero){
-        if(datos.modo !== 'ruta' || !numero) return true;
-        if(!asegurarEspacio(15)) return false;
-        pdf.setFillColor(238,244,237);
-        pdf.setDrawColor(47,82,51);
-        pdf.setLineWidth(0.55);
-        pdf.roundedRect(left, state.y, width, 12.5, 1.5, 1.5, 'FD');
-        var mid = left + width * 0.47;
-        pdf.setDrawColor(185,200,185);
-        pdf.line(mid, state.y + 2, mid, state.y + 10.5);
-        pdf.setFont('helvetica','bold');
-        pdf.setFontSize(6.8);
-        pdf.setTextColor(84,98,90);
-        pdf.text('N° DE CERTIFICADO', left + 4, state.y + 4);
-        pdf.text('N° DE FACTURACIÓN', mid + 4, state.y + 4);
-        pdf.setTextColor(31,42,36);
-        pdf.setFontSize(10.5);
-        pdf.text(String(datos.numCertificado || '—'), left + 4, state.y + 9.2, {maxWidth: width * 0.40});
-        pdf.setTextColor(47,82,51);
-        pdf.setFontSize(13.5);
-        pdf.text(String(numero), left + width - 4, state.y + 9.4, {align:'right', maxWidth: width * 0.48});
-        state.y += 15.5;
-        return true;
+        if(state.y + height > state.bottom){
+          pdf.addPage();
+          encabezado(false);
+        }
       }
 
       function tituloSeccion(title){
-        if(!asegurarEspacio(7)) return false;
+        asegurarEspacio(13);
         pdf.setFillColor(228,235,226);
         pdf.roundedRect(left, state.y, width, 5.5, 1, 1, 'F');
         pdf.setTextColor(47,82,51);
@@ -3357,7 +3477,10 @@ firmasSection.appendChild(firmasGrid);
         pdf.setTextColor(31,42,36);
         var lines = pdf.splitTextToSize(String(text || ''), textWidth);
         for(var i = 0; i < lines.length; i += 1){
-          if(!asegurarEspacio(lineHeight)) return false;
+          asegurarEspacio(lineHeight);
+          pdf.setFont('helvetica', options.bold ? 'bold' : 'normal');
+          pdf.setFontSize(fontSize);
+          pdf.setTextColor(31,42,36);
           pdf.text(lines[i], x, state.y + 2.8);
           state.y += lineHeight;
         }
@@ -3368,32 +3491,32 @@ firmasSection.appendChild(firmasGrid);
       function escribirDatosCliente(entries){
         var colWidth = 87;
         for(var i = 0; i < entries.length; i += 2){
-          var row = entries.slice(i, i + 2);
-          var measured = row.map(function(entry){
-            return pdf.splitTextToSize(String(entry[1]), 56);
+          var row = entries.slice(i, i + 2).map(function(entry){
+            pdf.setFont('helvetica','bold');
+            pdf.setFontSize(7.4);
+            var label = entry[0] + ':';
+            var labelWidth = Math.max(28, pdf.getTextWidth(label) + 2);
+            pdf.setFont('helvetica','normal');
+            pdf.setFontSize(7.9);
+            return {label:label, labelWidth:labelWidth, lines:pdf.splitTextToSize(String(entry[1]), colWidth - labelWidth)};
           });
-          var maxLines = Math.max.apply(Math, measured.map(function(lines){ return lines.length; }));
-          var tieneIdDestacado = row.some(function(entry){ return entry[0] === 'N° certificado' || entry[0] === 'N° de Facturación'; });
-          var rowHeight = Math.max(tieneIdDestacado ? 6.2 : 4.4, maxLines * 3.5 + (tieneIdDestacado ? 1.8 : 0.8));
-          if(!asegurarEspacio(rowHeight)) return false;
+          var maxLines = Math.max.apply(Math, row.map(function(entry){ return entry.lines.length; }));
+          var rowHeight = Math.max(4.4, maxLines * 3.5 + 0.8);
+          asegurarEspacio(rowHeight);
           row.forEach(function(entry, col){
             var x = left + col * (colWidth + 8);
-            var esCertificado = entry[0] === 'N° certificado';
-            var esFacturacion = entry[0] === 'N° de Facturación';
-            var esIdentificador = esCertificado || esFacturacion;
             pdf.setFont('helvetica','bold');
-            pdf.setFontSize(esIdentificador ? 7.8 : 7.4);
-            pdf.setTextColor(esIdentificador ? 47 : 84, esIdentificador ? 82 : 98, esIdentificador ? 51 : 90);
-            pdf.text(entry[0] + ':', x, state.y + 2.8);
-            pdf.setFont('helvetica', esIdentificador ? 'bold' : 'normal');
-            pdf.setFontSize(esFacturacion ? 10.5 : (esCertificado ? 9.2 : 7.9));
-            pdf.setTextColor(esFacturacion ? 47 : 31, esFacturacion ? 82 : 42, esFacturacion ? 51 : 36);
-            pdf.text(measured[col], x + 28, state.y + 2.8);
+            pdf.setFontSize(7.4);
+            pdf.setTextColor(84,98,90);
+            pdf.text(entry.label, x, state.y + 2.8);
+            pdf.setFont('helvetica','normal');
+            pdf.setFontSize(7.9);
+            pdf.setTextColor(31,42,36);
+            pdf.text(entry.lines, x + entry.labelWidth, state.y + 2.8);
           });
           state.y += rowHeight;
         }
         state.y += 1.2;
-        return true;
       }
 
       function escribirInfoDoble(identificacion, cliente){
@@ -3401,22 +3524,24 @@ firmasSection.appendChild(firmasGrid);
         cliente = cliente || [];
         var gap = 7;
         var colW = (width - gap) / 2;
-        var labelW = 27;
+        var labelW = 30;
         var valueW = colW - labelW - 3;
         var headingH = 7;
 
         function medirColumna(entries){
           var total = headingH + 1.5;
           entries.forEach(function(entry){
-            var lines = pdf.splitTextToSize(String(entry[1] || ''), valueW);
             var destacado = entry[0] === 'N° certificado' || entry[0] === 'N° de Facturación';
+            pdf.setFont('helvetica', destacado ? 'bold' : 'normal');
+            pdf.setFontSize(entry[0] === 'N° de Facturación' ? 10.2 : (destacado ? 9.0 : 7.8));
+            var lines = pdf.splitTextToSize(String(entry[1]), valueW);
             total += Math.max(destacado ? 6.0 : 4.4, lines.length * 3.45 + (destacado ? 1.4 : 0.5));
           });
           return total + 1.5;
         }
 
         var h = Math.max(medirColumna(identificacion), medirColumna(cliente));
-        if(!asegurarEspacio(h + 2)) return false;
+        asegurarEspacio(h + 2);
         var y0 = state.y;
         var xLeft = left;
         var xRight = left + colW + gap;
@@ -3439,7 +3564,9 @@ firmasSection.appendChild(firmasGrid);
             var esCertificado = entry[0] === 'N° certificado';
             var esFacturacion = entry[0] === 'N° de Facturación';
             var esId = esCertificado || esFacturacion;
-            var lines = pdf.splitTextToSize(String(entry[1] || ''), valueW);
+            pdf.setFont('helvetica', esId ? 'bold' : 'normal');
+            pdf.setFontSize(esFacturacion ? 10.2 : (esCertificado ? 9.0 : 7.8));
+            var lines = pdf.splitTextToSize(String(entry[1]), valueW);
             var rowH = Math.max(esId ? 6.0 : 4.4, lines.length * 3.45 + (esId ? 1.4 : 0.5));
             pdf.setFont('helvetica','bold');
             pdf.setFontSize(esId ? 7.7 : 7.2);
@@ -3460,135 +3587,93 @@ firmasSection.appendChild(firmasGrid);
       }
 
       function escribirLista(values){
-        for(var i = 0; i < values.length; i += 1){
-          var lines = pdf.splitTextToSize(String(values[i]), width - 7);
-          var height = Math.max(3.8, lines.length * 3.7) + 0.7;
-          if(!asegurarEspacio(height)) return false;
-          pdf.setFillColor(47,82,51);
-          pdf.circle(left + 1.5, state.y + 2.0, 0.65, 'F');
+        values.forEach(function(value){
           pdf.setFont('helvetica','normal');
           pdf.setFontSize(8.3);
-          pdf.setTextColor(31,42,36);
-          pdf.text(lines, left + 5, state.y + 2.7);
-          state.y += height;
-        }
+          var lines = pdf.splitTextToSize(String(value), width - 7);
+          lines.forEach(function(line, index){
+            asegurarEspacio(4.5);
+            if(index === 0){
+              pdf.setFillColor(47,82,51);
+              pdf.circle(left + 1.5, state.y + 2.0, 0.65, 'F');
+            }
+            pdf.setFont('helvetica','normal');
+            pdf.setFontSize(8.3);
+            pdf.setTextColor(31,42,36);
+            pdf.text(line, left + 5, state.y + 2.7);
+            state.y += 3.7;
+          });
+          state.y += 0.7;
+        });
         state.y += 0.8;
-        return true;
       }
 
       function escribirHallazgosDosColumnas(values){
         var gap = 7;
         var colW = (width - gap) / 2;
-        var leftX = left;
-        var rightX = left + colW + gap;
         var splitAt = Math.ceil(values.length / 2);
-        var cols = [values.slice(0, splitAt), values.slice(splitAt)];
-
-        function measureColumn(items){
-          var heights = [];
-          var total = 0;
-          items.forEach(function(value){
+        pdf.setFont('helvetica','normal');
+        pdf.setFontSize(7.4);
+        var columns = [values.slice(0, splitAt), values.slice(splitAt)].map(function(items){
+          return items.map(function(value){
             var lines = pdf.splitTextToSize(String(value), colW - 6);
-            var h = Math.max(3.3, lines.length * 3.15) + 0.7;
-            heights.push({lines:lines, height:h});
-            total += h;
-          });
-          return {items:heights, total:total};
-        }
-
-        // Se procura mantener ambas columnas en la misma página. Si no caben, se crea página nueva.
-        var measured = [measureColumn(cols[0]), measureColumn(cols[1])];
-        var needed = Math.max(measured[0].total, measured[1].total) + 1;
-        if(state.y + needed > state.bottom && state.page < state.maxPages){
-          if(!nuevaPagina()) return false;
-        }
-
-        var y0 = state.y;
-        var maxY = y0;
-        cols.forEach(function(items, col){
-          var x = col === 0 ? leftX : rightX;
-          var y = y0;
-          items.forEach(function(value, idx){
-            var measuredItem = measured[col].items[idx];
-            // Si una columna desborda, continúa en una página nueva conservando dos columnas.
-            if(y + measuredItem.height > state.bottom){
-              state.y = Math.max(maxY, y);
-              if(!nuevaPagina()) return;
-              y = state.y;
-              y0 = state.y;
-              x = col === 0 ? leftX : rightX;
-            }
-            pdf.setFillColor(47,82,51);
-            pdf.circle(x + 1.2, y + 1.8, 0.52, 'F');
-            pdf.setFont('helvetica','normal');
-            pdf.setFontSize(7.4);
-            pdf.setTextColor(31,42,36);
-            pdf.text(measuredItem.lines, x + 4, y + 2.5);
-            y += measuredItem.height;
-            if(y > maxY) maxY = y;
+            return {lines:lines, height:lines.length * 3.15 + 0.7};
           });
         });
-        state.y = maxY + 0.8;
-        return true;
-      }
-
-      function escribirCierre(entries){
-        for(var i = 0; i < entries.length; i += 1){
-          var entry = entries[i];
-          var lines = pdf.splitTextToSize(String(entry[1]), width - 35);
-          var height = Math.max(3.8, lines.length * 3.7) + 0.7;
-          if(!asegurarEspacio(height)) return false;
-          pdf.setFont('helvetica','bold');
-          pdf.setFontSize(7.8);
-          pdf.setTextColor(84,98,90);
-          pdf.text(entry[0] + ':', left, state.y + 2.7);
-          pdf.setFont('helvetica','normal');
-          pdf.setFontSize(8.3);
-          pdf.setTextColor(31,42,36);
-          pdf.text(lines, left + 35, state.y + 2.7);
-          state.y += height;
+        var heights = columns.map(function(items){
+          return items.reduce(function(total, item){ return total + item.height; }, 0);
+        });
+        var needed = Math.max(heights[0], heights[1]) + 1;
+        if(state.y + needed > state.bottom){
+          escribirLista(values);
+          return;
         }
-        state.y += 0.8;
-        return true;
+        pdf.setFillColor(47,82,51);
+        pdf.setTextColor(31,42,36);
+        columns.forEach(function(items, col){
+          var x = left + col * (colW + gap);
+          var y = state.y;
+          items.forEach(function(item){
+            pdf.circle(x + 1.2, y + 1.8, 0.52, 'F');
+            pdf.text(item.lines, x + 4, y + 2.5);
+            y += item.height;
+          });
+        });
+        state.y += needed;
       }
 
       function escribirFotos(fotos){
-        // 3 columnas con reseña/ubicación debajo de cada imagen.
         var cols = 3;
         var maxWidth = 57;
         var imageMaxHeight = 29;
-        var captionH = 10;
         var colGap = 4.5;
-        var rowHeight = imageMaxHeight + captionH + 3;
         for(var i = 0; i < fotos.length; i += cols){
-          if(!asegurarEspacio(rowHeight)) return false;
-          var row = fotos.slice(i, i + cols);
+          pdf.setFont('helvetica','normal');
+          pdf.setFontSize(6.5);
+          var row = fotos.slice(i, i + cols).map(function(foto){
+            var caption = 'Foto ' + foto.numero + (foto.caption ? ' · ' + foto.caption : '');
+            return {image:foto.image, dataUrl:foto.dataUrl, caption:pdf.splitTextToSize(caption, maxWidth - 2)};
+          });
+          var maxLines = Math.max.apply(Math, row.map(function(foto){ return foto.caption.length; }));
+          var rowHeight = imageMaxHeight + maxLines * 2.7 + 5;
+          asegurarEspacio(rowHeight);
           row.forEach(function(foto, col){
             var image = foto.image;
-            var naturalWidth = image.naturalWidth || 4;
-            var naturalHeight = image.naturalHeight || 3;
-            var scale = Math.min(maxWidth / naturalWidth, imageMaxHeight / naturalHeight);
-            var drawWidth = naturalWidth * scale;
-            var drawHeight = naturalHeight * scale;
+            var scale = Math.min(maxWidth / image.naturalWidth, imageMaxHeight / image.naturalHeight);
+            var drawWidth = image.naturalWidth * scale;
+            var drawHeight = image.naturalHeight * scale;
             var cellX = left + col * (maxWidth + colGap);
             var x = cellX + (maxWidth - drawWidth) / 2;
-            var format = image.src.indexOf('image/png') >= 0 ? 'PNG' : 'JPEG';
-            try{
-              pdf.addImage(image, format, x, state.y, drawWidth, drawHeight, undefined, 'FAST');
-            }catch(photoError){
-              console.warn('Una fotografía no pudo incorporarse al PDF.', photoError);
-            }
-
-            var caption = 'Foto ' + (i + col + 1) + ' · ' + (foto.caption || 'Sin reseña registrada');
-            var capLines = pdf.splitTextToSize(caption, maxWidth - 2).slice(0, 3);
+            var y = state.y + (imageMaxHeight - drawHeight) / 2;
+            var format = foto.dataUrl.indexOf('image/png') >= 0 ? 'PNG' : 'JPEG';
+            pdf.addImage(foto.dataUrl, format, x, y, drawWidth, drawHeight, undefined, 'FAST');
             pdf.setFont('helvetica','normal');
-            pdf.setFontSize(6.2);
+            pdf.setFontSize(6.5);
             pdf.setTextColor(65,75,69);
-            pdf.text(capLines, cellX + 1, state.y + imageMaxHeight + 3.2);
+            pdf.text(foto.caption, cellX + 1, state.y + imageMaxHeight + 3.2);
           });
           state.y += rowHeight;
         }
-        return true;
       }
 
 function escribirFirmas(firmas, numeroSeccion){
@@ -3597,12 +3682,7 @@ function escribirFirmas(firmas, numeroSeccion){
   var colW = (width - gap * 2) / 3;
   var panelH = 29;
   var totalH = 39;
-  if(state.y + totalH > state.bottom && state.page < state.maxPages){
-    nuevaPagina();
-  }
-  if(state.y + totalH > state.bottom){
-    state.y = Math.min(state.y, state.bottom - totalH);
-  }
+  asegurarEspacio(totalH);
 
   pdf.setFillColor(228,235,226);
   pdf.roundedRect(left, state.y, width, 5.5, 1, 1, 'F');
@@ -3683,80 +3763,82 @@ function escribirFirmas(firmas, numeroSeccion){
 }
 
       function escribirObservacionesDestacadas(texto, numero){
-        if(!texto) return true;
-        if(!asegurarEspacio(18)) return false;
-        pdf.setFillColor(247, 233, 216); // amber-soft
-        var lines = pdf.splitTextToSize(String(texto), width - 8);
-        var boxHeight = Math.max(14, lines.length * 3.9 + 10);
-        if(!asegurarEspacio(boxHeight + 2)) return false;
-        pdf.roundedRect(left, state.y, width, boxHeight, 1.5, 1.5, 'F');
-        pdf.setDrawColor(201, 122, 43);
-        pdf.setLineWidth(0.6);
-        pdf.line(left, state.y, left, state.y + boxHeight);
-        pdf.setTextColor(201, 122, 43);
-        pdf.setFont('helvetica','bold');
-        pdf.setFontSize(8.5);
-        pdf.text(String(numero || 3) + '. OBSERVACIONES TÉCNICAS (CLAVE PARA EL CLIENTE)', left + 4, state.y + 5);
-        pdf.setTextColor(31,42,36);
         pdf.setFont('helvetica','normal');
         pdf.setFontSize(8.6);
-        pdf.text(lines, left + 4, state.y + 10);
-        state.y += boxHeight + 3;
-        return true;
-      }
-
-      // Numeración continua: las secciones sin información no se crean en el PDF.
-      encabezado(true);
-      var numeroPdf = 1;
-      escribirInfoDoble(datos.identificacionServicio || [], datos.datosClienteOrganizados || []);
-      numeroPdf = 3;
-      if(!state.truncated && tituloSeccion(numeroPdf + '. Ejecución del servicio')) escribirDatosCliente(datos.ejecucionServicio || []);
-      if(datos.modo !== 'ruta'){
-        numeroPdf += 1;
-        if(!state.truncated && tituloSeccion(numeroPdf + '. Síntesis de la intervención')) escribirParrafo(datos.narrativa);
-      }
-      if(!state.truncated && datos.observaciones){
-        numeroPdf += 1;
-        escribirObservacionesDestacadas(datos.observaciones, numeroPdf);
-      }
-      if(!state.truncated && datos.hallazgos.length){
-        numeroPdf += 1;
-        if(tituloSeccion(numeroPdf + (datos.modo === 'ruta' ? '. Hallazgos y estado de control' : '. Evaluación y hallazgos'))) escribirHallazgosDosColumnas(datos.hallazgos);
-      }
-      if(!state.truncated && datos.fichaOperativa.length){
-        numeroPdf += 1;
-        if(tituloSeccion(numeroPdf + (datos.modo === 'ruta' ? '. Control de plagas ejecutado' : '. Control operativo y dispositivos'))) escribirHallazgosDosColumnas(datos.fichaOperativa);
-      }
-      if(!state.truncated && datos.acciones.length){
-        numeroPdf += 1;
-        if(tituloSeccion(numeroPdf + '. Productos e insumos aplicados')) escribirLista(datos.acciones);
-      }
-      if(!state.truncated && datos.cierre.length){
-        numeroPdf += 1;
-        if(tituloSeccion(numeroPdf + '. Recomendaciones')) escribirLista(datos.cierre);
-      }
-      if(!state.truncated && datos.fotos.length){
-        numeroPdf += 1;
-        if(tituloSeccion(numeroPdf + '. Registro fotográfico')) escribirFotos(datos.fotos);
-        if(!state.truncated && datos.totalFotos > datos.fotos.length){
-          escribirParrafo('Se registraron ' + datos.totalFotos + ' fotografías; se muestran las primeras ' + datos.fotos.length + '.', {fontSize:8, after:0});
+        var lines = pdf.splitTextToSize(String(texto), width - 8);
+        var lineHeight = 3.9;
+        var padding = 7;
+        var first = true;
+        while(lines.length){
+          var headingHeight = first ? 6 : 0;
+          asegurarEspacio(padding + headingHeight + lineHeight);
+          var count = Math.floor((state.bottom - state.y - padding - headingHeight) / lineHeight);
+          var pageLines = lines.splice(0, Math.max(1, count));
+          var boxHeight = pageLines.length * lineHeight + padding + headingHeight;
+          pdf.setFillColor(247,233,216);
+          pdf.roundedRect(left, state.y, width, boxHeight, 1.5, 1.5, 'F');
+          pdf.setDrawColor(201,122,43);
+          pdf.setLineWidth(0.6);
+          pdf.line(left, state.y, left, state.y + boxHeight);
+          if(first){
+            pdf.setTextColor(201,122,43);
+            pdf.setFont('helvetica','bold');
+            pdf.setFontSize(8.5);
+            pdf.text(numero + '. OBSERVACIONES TÉCNICAS (CLAVE PARA EL CLIENTE)', left + 4, state.y + 5);
+          }
+          pdf.setTextColor(31,42,36);
+          pdf.setFont('helvetica','normal');
+          pdf.setFontSize(8.6);
+          pdf.text(pageLines, left + 4, state.y + headingHeight + 5);
+          state.y += boxHeight + 3;
+          first = false;
         }
       }
-      numeroPdf += 1;
-      escribirFirmas(datos.firmas, numeroPdf);
+
+      encabezado(true);
+      var numeroPdf = 1;
+      if(datos.datosClienteOrganizados.length){
+        escribirInfoDoble(datos.identificacionServicio, datos.datosClienteOrganizados);
+        numeroPdf += 1;
+      }else{
+        tituloSeccion('1. Identificación del servicio');
+        escribirDatosCliente(datos.identificacionServicio);
+      }
+      function seccionPdf(titulo, espacioMinimo){
+        if(espacioMinimo) asegurarEspacio(7 + espacioMinimo);
+        tituloSeccion(++numeroPdf + '. ' + titulo);
+      }
+      if(datos.ejecucionServicio.length){
+        seccionPdf('Ejecución del servicio');
+        escribirDatosCliente(datos.ejecucionServicio);
+      }
+      if(datos.modo !== 'ruta'){
+        seccionPdf('Síntesis de la intervención');
+        escribirParrafo(datos.narrativa);
+      }
+      if(datos.observaciones) escribirObservacionesDestacadas(datos.observaciones, ++numeroPdf);
+      if(datos.hallazgos.length){
+        seccionPdf(datos.modo === 'ruta' ? 'Hallazgos y estado de control' : 'Check list · Inspección y condiciones');
+        escribirHallazgosDosColumnas(datos.hallazgos);
+      }
+      if(datos.fichaOperativa.length){
+        seccionPdf(datos.modo === 'ruta' ? 'Control de plagas ejecutado' : 'Control operativo y dispositivos');
+        escribirLista(datos.fichaOperativa);
+      }
+      if(datos.cierre.length){
+        seccionPdf('Recomendaciones');
+        escribirLista(datos.cierre);
+      }
+      if(datos.fotos.length){
+        seccionPdf('Registro fotográfico', 53);
+        escribirFotos(datos.fotos);
+      }
+      escribirFirmas(datos.firmas, ++numeroPdf);
 
       var totalPages = pdf.internal.getNumberOfPages();
       for(var pageNumber = 1; pageNumber <= totalPages; pageNumber += 1){
         pdf.setPage(pageNumber);
         pieDePagina(pageNumber, totalPages);
-      }
-
-      if(state.truncated){
-        pdf.setPage(totalPages);
-        pdf.setFont('helvetica','italic');
-        pdf.setFontSize(7);
-        pdf.setTextColor(168,65,46);
-        pdf.text('Contenido condensado para respetar el máximo de páginas.', left, 278);
       }
 
       onReady(pdf);
@@ -3765,253 +3847,458 @@ function escribirFirmas(firmas, numeroSeccion){
     }
   }
 
-  function descargarBlob(pdf, filename){
-    actualizarTituloDocumento();
-    var blob = pdf.output('blob');
-    if(lastPdfUrl){ window.URL.revokeObjectURL(lastPdfUrl); }
-    lastPdfUrl = window.URL.createObjectURL(blob);
-    var openBtn = document.getElementById('btnOpenPdf');
-    if(openBtn){
-      openBtn.hidden = false;
-      openBtn.setAttribute('data-filename', filename);
-    }
+  document.getElementById('btnDocument').addEventListener('click', descargarDocumentoWord);
 
-    // 1) jsPDF save con nombre explícito
-    try{
-      if(typeof pdf.save === 'function'){
-        pdf.save(filename);
-        return true;
-      }
-    }catch(e1){ /* continuar */ }
-
-    // 2) <a download> (Chrome/Android/desktop)
-    var link = document.createElement('a');
-    link.href = lastPdfUrl;
-    link.download = filename;
-    link.rel = 'noopener';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    var clicked = false;
-    try{
-      link.click();
-      clicked = true;
-    }catch(err){ clicked = false; }
-    window.setTimeout(function(){
-      if(link.parentNode) link.parentNode.removeChild(link);
-    }, 400);
-
-    // 3) iOS / Edge a menudo ignoran download: abrir en pestaña
-    //    (el usuario puede usar "Compartir → Guardar en Archivos")
-    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if(isIOS || !clicked){
-      window.open(lastPdfUrl, '_blank');
-    }
-    return true;
-  }
-
-  var btnDocument = document.getElementById('btnDocument');
-  if(btnDocument){
-    btnDocument.addEventListener('click', function(ev){
-      if(ev){ ev.preventDefault(); }
-      descargarDocumentoWord();
-    });
-  }
-
-  document.getElementById('btnPrint').addEventListener('click', function(ev){
-    if(ev){ ev.preventDefault(); }
+  document.getElementById('btnPrint').addEventListener('click', function(){
+    if(!validarSalidaInforme('PDF')) return;
     var status = document.getElementById('statusMsg');
-    var cert = document.getElementById('numCertificado').value.trim();
-    if(!cert){
-      status.textContent = 'Indica el N° de certificado antes de guardar (queda en el nombre del PDF).';
-      var certInput = document.getElementById('numCertificado');
-      if(certInput){
-        certInput.focus();
-        scrollSeguro(certInput);
-      }
-      return;
-    }
-    if(modoSeleccionado() === 'ruta'){
-      var facturacion = document.getElementById('numFactura');
-      if(!facturacion || !facturacion.value.trim()){
-        status.textContent = 'Indica el N° de Facturación antes de generar el DOCX o PDF de Ruta.';
-        if(facturacion){
-          facturacion.focus();
-          scrollSeguro(facturacion);
-        }
-        return;
-      }
-    }
-    var fotosSinResena = Array.prototype.filter.call(document.querySelectorAll('#imgGrid .img-thumb'), function(card){
-      var caption = card.querySelector('.img-caption');
-      return !caption || !caption.value.trim();
-    });
-    if(fotosSinResena.length){
-      status.textContent = 'Agrega una reseña/ubicación a cada fotografía antes de generar el DOCX o PDF.';
-      var firstCaption = fotosSinResena[0].querySelector('.img-caption');
-      if(firstCaption){
-        firstCaption.focus();
-        scrollSeguro(firstCaption);
-      }
-      return;
-    }
+    var nombre = nombreArchivo();
     actualizarTituloDocumento();
-    prepararInformeImpresion();
-    var fname = nombreArchivo();
-    var fnameHint = fname.replace(/\.pdf$/i, '');
-    var isAndroidApp = /TecnoMIPApp\//.test(navigator.userAgent || '');
-    if(isAndroidApp){
+
+    if(/TecnoMIPApp\//.test(navigator.userAgent || '')){
+      prepararInformeImpresion();
       status.textContent = 'Preparando PDF en la aplicación…';
-      window.setTimeout(function(){
-        window.location.href = 'tecnoapp://print?name=' + encodeURIComponent(fname);
-      }, 80);
+      window.location.href = 'tecnoapp://print?name=' + encodeURIComponent(nombre);
       return;
     }
-    var isIOSBrowser = /iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    status.textContent = isIOSBrowser ?
-      'PDF para SAP/KPro · en iPhone usa Compartir → Guardar en Archivos. Mantén el nombre sugerido sin tildes ni símbolos.' :
-      'Guardar como PDF · ' + fnameHint + '. En el diálogo elige “Guardar como PDF”.';
-    window.setTimeout(function(){ window.print(); }, 80);
+
+    function imprimirComoPdf(){
+      prepararInformeImpresion();
+      status.textContent = 'Selecciona Guardar como PDF en el diálogo de impresión.';
+      window.print();
+    }
+
+    function descargarPdf(){
+      generarPdfResumido(function(pdf){
+        entregarArchivo(pdf.output('blob'), nombre, status);
+      }, function(error){
+        console.warn('No se pudo generar el PDF directo.', error);
+        imprimirComoPdf();
+      });
+    }
+
+    if(bibliotecaPdfDisponible()){
+      descargarPdf();
+    }else{
+      status.textContent = 'Preparando PDF…';
+      prepararBibliotecaPdf().then(function(disponible){
+        if(disponible || bibliotecaPdfDisponible()) descargarPdf();
+        else imprimirComoPdf();
+      });
+    }
+  });
+
+  // Cargar antes del toque para conservar la activación que requiere Compartir.
+  prepararBibliotecaPdf();
+
+  window.addEventListener('beforeprint', function(){
+    if(document.getElementById('printReport').getAttribute('aria-hidden') === 'true') prepararInformeImpresion();
   });
 
   window.addEventListener('afterprint', function(){
     document.getElementById('printReport').setAttribute('aria-hidden', 'true');
-    var s = document.getElementById('statusMsg');
-    if(s) s.textContent = 'PDF finalizado · pulsa “Limpiar / Nuevo informe” para comenzar el siguiente servicio';
-  });
-
-  window.addEventListener('beforeunload', function(){
-    if(lastPdfUrl){ window.URL.revokeObjectURL(lastPdfUrl); }
   });
 
   // Reinicio gestionado por limpiarNuevoFormularioMIP() en el bloque independiente anterior.
 
-  // ---------- mejora móvil: guardado automático de campos ----------
-  var AUTOSAVE_KEY = 'tecnoambiente_mip_reporte_optimizado_v1';
+  // ---------- borrador local: campos en localStorage y adjuntos en IndexedDB ----------
+  var AUTOSAVE_KEY = 'tecnoambiente_mip_borrador_v3';
+  var AUTOSAVE_MEDIA_KEY = 'tecnoambiente_mip_borrador_medios_v3';
+  var AUTOSAVE_LEGACY_KEYS = ['tecnoambiente_mip_reporte_optimizado_v1', 'tecnoambiente_mip_metro_productos_integrados_v2'];
+  var TABLAS_INSUMOS_BORRADOR = ['tablaDesrat','tablaDesin','tablaSan'];
   var saveTimer = null;
+  var almacenBorrador = null;
+  var revisionBorrador = 0;
+  var cicloFormulario = 0;
+  var mediosListos = false;
+  var mediosPendientes = false;
+  var guardadoMedios = Promise.resolve();
+  var evaluacionAnterior = [];
+  var resenasGuardadas = {};
+  var borradorId = nuevoIdLocal();
   window.__MIP_RESET_IN_PROGRESS = !!window.__MIP_RESET_IN_PROGRESS;
 
+  function nuevoIdLocal(){
+    return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  }
+
+  function abrirAlmacenBorrador(){
+    if(!almacenBorrador){
+      almacenBorrador = new Promise(function(resolve, reject){
+        var solicitud = window.indexedDB.open('tecnoambiente-mip-borrador', 1);
+        solicitud.onupgradeneeded = function(){ solicitud.result.createObjectStore('borrador'); };
+        solicitud.onsuccess = function(){
+          var db = solicitud.result;
+          db.onversionchange = function(){
+            db.close();
+            almacenBorrador = null;
+          };
+          resolve(db);
+        };
+        solicitud.onerror = function(){ reject(solicitud.error); };
+        solicitud.onblocked = function(){ reject(new Error('El almacenamiento local está ocupado')); };
+      });
+    }
+    return almacenBorrador;
+  }
+
+  function transaccionBorrador(modo, operacion){
+    return abrirAlmacenBorrador().then(function(db){
+      return new Promise(function(resolve, reject){
+        var transaccion = db.transaction('borrador', modo);
+        var solicitud = operacion(transaccion.objectStore('borrador'));
+        transaccion.oncomplete = function(){ resolve(solicitud.result); };
+        transaccion.onabort = transaccion.onerror = function(){ reject(transaccion.error); };
+      });
+    });
+  }
+
+  function leerLocal(clave){
+    try{ return JSON.parse(localStorage.getItem(clave)); }
+    catch(e){ return null; }
+  }
+
+  function esBorrador(data){ return !!data && Array.isArray(data.items); }
+
+  function fechaGuardada(data){
+    return (data && Date.parse(data.savedAt)) || 0;
+  }
+
   function claveCampo(el){
-    if(!el) return '';
     if(el.id) return 'id:' + el.id;
     if(el.name) return 'name:' + el.name + '|value:' + (el.value || '');
-    var tr = el.closest ? el.closest('tr') : null;
-    var tbody = el.closest ? el.closest('tbody') : null;
+    var tr = el.closest('tr');
+    var tbody = el.closest('tbody');
     if(tr && tbody && tbody.id){
-      var filas = Array.prototype.slice.call(tbody.children);
-      var fila = filas.indexOf(tr);
-      var td = el.closest('td');
-      var col = td ? Array.prototype.slice.call(tr.children).indexOf(td) : 0;
+      var fila = Array.prototype.indexOf.call(tbody.children, tr);
+      var col = Array.prototype.indexOf.call(tr.children, el.closest('td'));
       return 'table:' + tbody.id + '|r:' + fila + '|c:' + col + '|tag:' + el.tagName;
     }
     return '';
   }
 
+  function datosTabla(clave){
+    return clave.match(/^table:([^|]+)\|r:(\d+)\|c:(\d+)\|tag:(SELECT|INPUT|TEXTAREA)$/);
+  }
+
+  function ajustarFilasInsumos(id, cantidad){
+    var tbody = document.getElementById(id);
+    if(!tbody) return;
+    while(tbody.children.length > cantidad) tbody.lastElementChild.remove();
+    while(tbody.children.length < cantidad) addInsumoRow(id);
+  }
+
+  window.__MIP_RESET_PRODUCT_ROWS = function(){
+    TABLAS_INSUMOS_BORRADOR.forEach(function(id){ ajustarFilasInsumos(id, 2); });
+    sincronizarFilasInsumos();
+    sincronizarActividadInsectos();
+  };
+
   function snapshotSimple(){
     var items = [];
+    var filasProductos = {};
+    var resenasFotos = mediosListos ? {} : Object.assign({}, resenasGuardadas);
+    Array.prototype.forEach.call(imgGrid.querySelectorAll('.img-thumb'), function(thumb){
+      resenasFotos[thumb.dataset.fotoId] = thumb.querySelector('.img-caption').value;
+    });
+    TABLAS_INSUMOS_BORRADOR.forEach(function(id){
+      var tbody = document.getElementById(id);
+      if(tbody) filasProductos[id] = tbody.children.length;
+    });
     Array.prototype.forEach.call(document.querySelectorAll('#page input:not([type=file]), #page select, #page textarea'), function(el){
       var key = claveCampo(el);
-      if(!key) return;
-      items.push({key:key, value:el.value || '', checked:!!el.checked, type:el.type || el.tagName});
+      if(key) items.push({key:key, value:el.value || '', checked:!!el.checked, type:el.type || el.tagName});
     });
-    return {savedAt:new Date().toISOString(), modo:modoSeleccionado(), items:items};
+    return {
+      savedAt:new Date().toISOString(),
+      borradorId:borradorId,
+      modo:modoSeleccionado(),
+      items:items,
+      filasProductos:filasProductos,
+      resenasFotos:resenasFotos,
+      evaluacionAnterior:evaluacionAnterior
+    };
+  }
+
+  function snapshotMedios(){
+    var fotos = Array.prototype.map.call(imgGrid.querySelectorAll('.img-thumb'), function(thumb){
+      return {id:thumb.dataset.fotoId, imagen:thumb.querySelector('img').src};
+    });
+    var firmas = [];
+    Object.keys(restauradoresFirma).forEach(function(id){
+      var canvas = document.getElementById(id);
+      if(canvas.dataset.signed === 'true'){
+        firmas.push({id:id, imagen:canvas.toDataURL('image/png'), fecha:canvas.dataset.signedAt});
+      }
+    });
+    return {savedAt:new Date().toISOString(), borradorId:borradorId, fotos:fotos, firmas:firmas};
   }
 
   window.__MIP_CANCEL_AUTOSAVE = function(){
-    try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer = null; } }catch(e){}
+    clearTimeout(saveTimer);
+    saveTimer = null;
   };
+
+  window.__MIP_CLEAR_DRAFT_DB = function(){
+    cicloFormulario++;
+    colaFotos = [];
+    preparandoFoto = false;
+    actualizarEstadoFoto('');
+    borradorId = nuevoIdLocal();
+    evaluacionAnterior = [];
+    resenasGuardadas = {};
+    mediosListos = true;
+    mediosPendientes = false;
+    guardadoMedios = Promise.resolve();
+    transaccionBorrador('readwrite', function(store){ return store.clear(); }).catch(function(){});
+  };
+
+  function guardarCampos(data){
+    try{
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+      return Promise.resolve();
+    }catch(e){
+      return transaccionBorrador('readwrite', function(store){ return store.put(data, 'campos'); });
+    }
+  }
+
+  function guardarMedios(ciclo){
+    mediosPendientes = false;
+    var data;
+    try{ data = snapshotMedios(); }
+    catch(error){ return Promise.reject(error); }
+    return transaccionBorrador('readwrite', function(store){ return store.put(data, 'medios'); }).then(function(){
+      if(ciclo !== cicloFormulario) return;
+      var anterior = leerLocal(AUTOSAVE_MEDIA_KEY);
+      if(fechaGuardada(anterior) <= fechaGuardada(data)){
+        try{ localStorage.removeItem(AUTOSAVE_MEDIA_KEY); }catch(e){}
+      }
+    }, function(){
+      if(ciclo !== cicloFormulario) return;
+      var anterior = leerLocal(AUTOSAVE_MEDIA_KEY);
+      if(fechaGuardada(anterior) > fechaGuardada(data)) return;
+      localStorage.setItem(AUTOSAVE_MEDIA_KEY, JSON.stringify(data));
+    });
+  }
 
   function saveSimple(){
     if(window.__MIP_RESET_IN_PROGRESS) return;
-    try{
-      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(snapshotSimple()));
-      var s=document.getElementById('statusMsg');
-      if(s && !/Preparando PDF|Guardar como PDF/.test(s.textContent||'')) s.textContent='Borrador guardado automáticamente';
-    }catch(e){}
+    var ciclo = cicloFormulario;
+    var revision = revisionBorrador;
+    var guardadoCampos = guardarCampos(snapshotSimple());
+    if(mediosListos && mediosPendientes) guardadoMedios = guardarMedios(ciclo);
+    Promise.all([guardadoCampos, guardadoMedios]).then(function(){
+      if(ciclo !== cicloFormulario || revision !== revisionBorrador || mediosPendientes) return;
+      var status = document.getElementById('statusMsg');
+      if(status && !/PDF|DOCX|Word|Compartir/.test(status.textContent)) status.textContent = 'Borrador guardado automáticamente';
+    }, function(){
+      if(ciclo !== cicloFormulario || revision !== revisionBorrador) return;
+      var status = document.getElementById('statusMsg');
+      if(status) status.textContent = 'No se pudieron guardar todos los datos del borrador en este dispositivo';
+    });
   }
 
   function scheduleSave(delay){
     if(window.__MIP_RESET_IN_PROGRESS) return;
+    revisionBorrador++;
     window.__MIP_CANCEL_AUTOSAVE();
-    saveTimer=setTimeout(function(){
-      saveTimer=null;
-      if(!window.__MIP_RESET_IN_PROGRESS) saveSimple();
-    },delay);
+    saveTimer = setTimeout(function(){
+      saveTimer = null;
+      saveSimple();
+    }, delay);
+  }
+
+  function solicitarGuardadoMedios(){
+    if(window.__MIP_RESET_IN_PROGRESS) return;
+    mediosPendientes = true;
+    revisionBorrador++;
+    window.__MIP_CANCEL_AUTOSAVE();
+    saveSimple();
   }
 
   function buscarPorClave(key){
-    if(!key) return null;
     if(key.indexOf('id:') === 0) return document.getElementById(key.slice(3));
     if(key.indexOf('name:') === 0){
-      var m = key.match(/^name:(.*?)\|value:(.*)$/);
+      var m = key.match(/^name:([^|]+)\|value:([\s\S]*)$/);
       if(!m) return null;
       var candidates = document.getElementsByName(m[1]);
       for(var i=0;i<candidates.length;i++){ if((candidates[i].value || '') === m[2]) return candidates[i]; }
       return null;
     }
-    if(key.indexOf('table:') === 0){
-      var mt = key.match(/^table:(.*?)\|r:(\d+)\|c:(\d+)\|tag:(.*)$/);
-      if(!mt) return null;
-      var tbody=document.getElementById(mt[1]); if(!tbody) return null;
-      var tr=tbody.children[parseInt(mt[2],10)]; if(!tr) return null;
-      var td=tr.children[parseInt(mt[3],10)]; if(!td) return null;
-      return td.querySelector(mt[4].toLowerCase());
-    }
-    return null;
+    var tabla = datosTabla(key);
+    if(!tabla) return null;
+    var tbody = document.getElementById(tabla[1]);
+    var tr = tbody && tbody.children[Number(tabla[2])];
+    var td = tr && tr.children[Number(tabla[3])];
+    return td ? td.querySelector(tabla[4].toLowerCase()) : null;
   }
 
-  function restoreSimple(){
-    if(window.__MIP_RESET_IN_PROGRESS) return;
-    try{
-      var raw=localStorage.getItem(AUTOSAVE_KEY);
-      if(!raw) return;
-      var data=JSON.parse(raw);
-      if(!data || !data.items) return;
-      var modoGuardado = data.modo === 'ruta' ? 'ruta' : 'metro';
-      var radioModo = document.querySelector('#grupoModo input[value="' + (modoGuardado === 'ruta' ? 'Ruta' : 'Metro') + '"]');
-      if(radioModo) radioModo.checked = true;
-      aplicarModo(modoGuardado,{conservarDatosCliente:true,silencioso:true});
-      data.items.forEach(function(it){
-        var el=buscarPorClave(it.key); if(!el) return;
-        if(el.type==='checkbox' || el.type==='radio') el.checked=!!it.checked; else el.value=it.value || '';
-      });
-      sincronizarFilasInsumos();
-      sincronizarCamposOtros(false);
-      sincronizarServicioOtro(false);
-      sincronizarOtraPlagaRuta(false);
-      sincronizarCoordinadoraRuta();
-      if(modoGuardado === 'ruta') actualizarControlesRutaSegunPlaga();
-      sincronizarPanelesServicio();
-      actualizarNumeracionSecciones(modoGuardado);
-      var s=document.getElementById('statusMsg'); if(s) s.textContent='Borrador recuperado automáticamente · ' + (modoGuardado === 'ruta' ? 'Ruta' : 'Metro');
-    }catch(e){}
+  function prepararFilasProductos(items, filasProductos){
+    var filasGuardadas = {};
+    items.forEach(function(item){
+      var tabla = datosTabla(item.key);
+      if(!tabla || TABLAS_INSUMOS_BORRADOR.indexOf(tabla[1]) < 0) return;
+      var total = Number(tabla[2]) + 1;
+      if(total <= items.length) filasGuardadas[tabla[1]] = Math.max(total, filasGuardadas[tabla[1]] || 0);
+    });
+    TABLAS_INSUMOS_BORRADOR.forEach(function(id){
+      var cantidad = filasProductos && filasProductos[id];
+      if(!Number.isInteger(cantidad) || cantidad < 0 || cantidad > items.length){
+        cantidad = Math.max(2, filasGuardadas[id] || 0);
+      }
+      ajustarFilasInsumos(id, cantidad);
+    });
   }
 
-  // Evita que Edge/Chromium repueble campos por autocompletado propio del navegador.
+  function migrarFilasSanitizacion(items){
+    var destino = 0;
+    var filasDesinfeccion = {};
+    items.forEach(function(item){
+      var tabla = datosTabla(item.key);
+      if(!tabla) return;
+      if(tabla[1] === 'tablaSan') destino = Math.max(destino, Number(tabla[2]) + 1);
+      if(tabla[1] === 'tablaDesin' && tabla[4] === 'SELECT' && buscarProductoInsumo('tablaSan', item.value)){
+        filasDesinfeccion[tabla[2]] = true;
+      }
+    });
+    var filas = Object.keys(filasDesinfeccion);
+    if(!filas.length) return items;
+    var nuevasFilas = {};
+    filas.forEach(function(fila){
+      nuevasFilas[fila] = destino++;
+    });
+    return items.map(function(item){
+      var tabla = datosTabla(item.key);
+      if(tabla && tabla[1] === 'tablaDesin' && nuevasFilas[tabla[2]] !== undefined){
+        return Object.assign({}, item, {key:'table:tablaSan|r:' + nuevasFilas[tabla[2]] + '|c:' + tabla[3] + '|tag:' + tabla[4]});
+      }
+      return item;
+    });
+  }
+
+  function restoreSimple(data){
+    if(!esBorrador(data) || window.__MIP_RESET_IN_PROGRESS) return;
+    borradorId = data.borradorId || borradorId;
+    resenasGuardadas = data.resenasFotos || {};
+    var modoGuardado = data.modo === 'ruta' ? 'ruta' : 'metro';
+    var radioModo = document.querySelector('#grupoModo input[value="' + (modoGuardado === 'ruta' ? 'Ruta' : 'Metro') + '"]');
+    if(radioModo) radioModo.checked = true;
+    aplicarModo(modoGuardado, {conservarDatosCliente:true, silencioso:true});
+    var items = data.items.filter(function(item){ return item && typeof item.key === 'string'; });
+    if(!data.borradorId) items = migrarFilasSanitizacion(items);
+    prepararFilasProductos(items, data.filasProductos);
+
+    // No asignar una evaluación histórica a una intervención o especie por inferencia.
+    evaluacionAnterior = Array.isArray(data.evaluacionAnterior) ? data.evaluacionAnterior : [];
+    var servicios = new Set();
+    var campos = items.filter(function(item){
+      if(item.key === 'id:especie' || item.key.indexOf('name:evaluacion|value:') === 0){
+        if(item.checked || (item.key === 'id:especie' && item.value)) evaluacionAnterior.push(item);
+        return false;
+      }
+      if(/^name:(servicio|clasificacionVisita)\|value:/.test(item.key)){
+        if(item.checked) servicios.add(String(item.value || '').toLowerCase());
+        return false;
+      }
+      return true;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#grupoServicio input'), function(input){
+      input.checked = servicios.has(input.value.toLowerCase());
+    });
+    campos.forEach(function(item){
+      if(item.key.indexOf('name:plagaRuta|value:') !== 0) return;
+      var el = buscarPorClave(item.key);
+      if(el) el.checked = !!item.checked;
+    });
+    if(modoGuardado === 'ruta') actualizarControlesRutaSegunPlaga();
+
+    campos.forEach(function(item){
+      var el = buscarPorClave(item.key);
+      if(!el) return;
+      if(el.type === 'checkbox' || el.type === 'radio') el.checked = !!item.checked;
+      else el.value = item.value || '';
+    });
+    sincronizarFilasInsumos();
+    sincronizarCamposOtros(false);
+    sincronizarServicioOtro(false);
+    sincronizarOtraPlagaRuta(false);
+    if(modoGuardado === 'ruta') sincronizarCoordinadoraRuta();
+    sincronizarActividadInsectos();
+    sincronizarPanelesServicio();
+    var status = document.getElementById('statusMsg');
+    if(status) status.textContent = 'Borrador recuperado automáticamente · ' + (modoGuardado === 'ruta' ? 'Ruta' : 'Metro');
+  }
+
+  function restaurarMedios(data, ciclo){
+    if(!data || data.borradorId !== borradorId || ciclo !== cicloFormulario) return Promise.resolve();
+    var fotos = Array.isArray(data.fotos) ? data.fotos : [];
+    var primeraNueva = imgGrid.firstElementChild;
+    fotos.forEach(function(foto){
+      if(!foto || !/^data:image\//.test(foto.imagen)) return;
+      var resena = foto.id ? resenasGuardadas[foto.id] : foto.resena;
+      imgGrid.insertBefore(agregarFoto(foto.imagen, resena, foto.id), primeraNueva);
+    });
+    var firmas = Array.isArray(data.firmas) ? data.firmas : [];
+    return Promise.all(firmas.map(function(firma){
+      var restaurar = firma && restauradoresFirma[firma.id];
+      if(restaurar && /^data:image\/png;base64,/.test(firma.imagen)) return restaurar(firma, ciclo);
+    }));
+  }
+
+  function recuperarBorrador(){
+    var ciclo = cicloFormulario;
+    var local = leerLocal(AUTOSAVE_KEY);
+    var anteriores = AUTOSAVE_LEGACY_KEYS.map(leerLocal).filter(esBorrador);
+    anteriores.sort(function(a, b){ return fechaGuardada(b) - fechaGuardada(a); });
+    if(!esBorrador(local)) local = anteriores[0];
+    restoreSimple(local);
+
+    Promise.all(['campos', 'medios'].map(function(clave){
+      return transaccionBorrador('readonly', function(store){ return store.get(clave); }).catch(function(){ return null; });
+    })).then(function(registros){
+      if(ciclo !== cicloFormulario) return;
+      var campos = registros[0];
+      if(revisionBorrador === 0 && esBorrador(campos) && fechaGuardada(campos) > fechaGuardada(local)) restoreSimple(campos);
+      var idb = registros[1];
+      var respaldo = leerLocal(AUTOSAVE_MEDIA_KEY);
+      var candidatos = [idb, respaldo].filter(function(data){ return data && data.borradorId === borradorId; });
+      candidatos.sort(function(a, b){ return fechaGuardada(b) - fechaGuardada(a); });
+      return restaurarMedios(candidatos[0], ciclo);
+    }).then(function(){
+      if(ciclo !== cicloFormulario) return;
+      mediosListos = true;
+      if(mediosPendientes) saveSimple();
+    });
+  }
+
   Array.prototype.forEach.call(document.querySelectorAll('#page input, #page textarea, #page select'), function(el){
-    try{ el.setAttribute('autocomplete','off'); }catch(e){}
+    el.setAttribute('autocomplete', 'off');
   });
 
   var pageRoot = document.getElementById('page');
   function habilitarGuardadoPorInteraccionReal(){
     if(window.__MIP_RESET_IN_PROGRESS) window.__MIP_RESET_IN_PROGRESS = false;
   }
-  // Solo una interacción real del usuario vuelve a habilitar el autoguardado tras "Nuevo formulario".
   pageRoot.addEventListener('pointerdown', habilitarGuardadoPorInteraccionReal, true);
   pageRoot.addEventListener('keydown', habilitarGuardadoPorInteraccionReal, true);
   pageRoot.addEventListener('touchstart', habilitarGuardadoPorInteraccionReal, {capture:true, passive:true});
 
-  pageRoot.addEventListener('input', function(){ scheduleSave(700); });
-  pageRoot.addEventListener('change', function(){ scheduleSave(400); });
-  window.addEventListener('pageshow', function(){
-    if(window.__MIP_RESET_IN_PROGRESS){
-      try{ localStorage.removeItem(AUTOSAVE_KEY); }catch(e){}
-    }
+  pageRoot.addEventListener('input', function(event){
+    if(event.target.type !== 'file') scheduleSave(350);
   });
+  pageRoot.addEventListener('change', function(event){
+    if(event.target.type !== 'file') scheduleSave(180);
+  });
+  function guardarAlSalir(){
+    if(saveTimer === null && !mediosPendientes) return;
+    window.__MIP_CANCEL_AUTOSAVE();
+    saveSimple();
+  }
+  document.addEventListener('visibilitychange', function(){ if(document.hidden) guardarAlSalir(); });
+  window.addEventListener('pagehide', guardarAlSalir);
   window.addEventListener('online', function(){ var s=document.getElementById('statusMsg'); if(s) s.textContent='Conexión disponible · informe listo'; });
   window.addEventListener('offline', function(){ var s=document.getElementById('statusMsg'); if(s) s.textContent='Modo sin conexión · los datos siguen disponibles'; });
-  window.setTimeout(function(){ if(!window.__MIP_RESET_IN_PROGRESS) restoreSimple(); }, 150);
+  recuperarBorrador();
 })();
 </script>
 
@@ -4025,7 +4312,7 @@ function escribirFirmas(firmas, numeroSeccion){
   // Service Worker is available only when served from HTTPS/localhost, not file://.
   if('serviceWorker' in navigator && location.protocol !== 'file:'){
     window.addEventListener('load', function(){
-      navigator.serviceWorker.register('./service-worker.js').catch(function(){ /* Safari fallback */ });
+      navigator.serviceWorker.register('./service-worker.js', {updateViaCache:'none'}).catch(function(){ /* Safari fallback */ });
     });
   }
 })();

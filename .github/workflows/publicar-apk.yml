@@ -1,0 +1,39 @@
+name: Publicar APK Android MIP ya compilada
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publicar-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publicacion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Recuperar la APK verificada del flujo de compilacion
+        run: |
+          mkdir -p dist
+          gh run download 45651099479 -n Tecnoambiente-MIP-APK -D dist
+          sha256sum -c <(sed 's#dist/Tecnoambiente-MIP-Android.apk#dist/Tecnoambiente-MIP-Android.apk#' dist/SHA256.txt)
+      - name: Publicar en GitHub Releases con reintentos
+        run: |
+          for intento in 1 2 3 4; do
+            if gh release view android-mip-v1.0.0 >/dev/null 2>&1; then
+              gh release upload android-mip-v1.0.0 dist/Tecnoambiente-MIP-Android.apk dist/SHA256.txt --clobber && exit 0
+            else
+              gh release create android-mip-v1.0.0 dist/Tecnoambiente-MIP-Android.apk dist/SHA256.txt \
+                --title 'Tecnoambiente MIP Android v1.0.0' \
+                --notes 'APK Android para el formulario MIP Metro/Ruta. Permite captura de fotos, firmas y descarga PDF y DOCX. Version de prueba firmada con clave de desarrollo.' && exit 0
+            fi
+            sleep 12
+          done
+          exit 1

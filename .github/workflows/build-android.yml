@@ -1,0 +1,59 @@
+name: Compilar APK Tecnoambiente MIP
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android-src.tar.gz'
+      - '.github/workflows/build-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+      - name: Preparar codigo Android desde fuente
+        run: tar -xzf android-src.tar.gz
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Configurar SDK Android
+        uses: android-actions/setup-android@v3
+      - name: Instalar Android 35
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Compilar APK con firma Android v2/v3
+        run: gradle -p android :app:assembleDebug --no-daemon --stacktrace
+      - name: Preparar instalador
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/Tecnoambiente-MIP-Android.apk
+          sha256sum dist/Tecnoambiente-MIP-Android.apk > dist/SHA256.txt
+      - name: Publicar APK en Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tecnoambiente-MIP-APK
+          path: dist/
+          retention-days: 90
+      - name: Publicar descarga directa en GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view android-mip-v1.0.0 >/dev/null 2>&1; then
+            gh release upload android-mip-v1.0.0 dist/Tecnoambiente-MIP-Android.apk dist/SHA256.txt --clobber
+          else
+            gh release create android-mip-v1.0.0 dist/Tecnoambiente-MIP-Android.apk dist/SHA256.txt \
+              --target "$GITHUB_SHA" --title 'Tecnoambiente MIP Android v1.0.0' \
+              --notes 'APK Android MIP Metro/Ruta. Firmas, camara, fotos, exportacion PDF/DOCX. Primera apertura requiere internet. Firma de prueba: para produccion usar keystore estable.'
+          fi
